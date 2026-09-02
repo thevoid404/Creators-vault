@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# local file storage (StorageProvider: local-disk implementation)
+storage/
+uploads/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+
+# tests
+coverage/
+.nyc_output/
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+#md file
+todo.md
+api.md
+mission.md

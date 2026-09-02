@@ -1,0 +1,2251 @@
+{
+  "info": {
+    "name": "Creators' Vault API",
+    "description": "Backend for Creators’ Vault — an intelligent digital asset management workspace.\n\nAll routes are versioned under `/api/v1`.\n\n**Auth:** obtain a JWT by completing the Google OAuth flow at\n`GET /api/v1/auth/google`, then send it as `Authorization: Bearer <accessToken>`.\n\n**Stubbed modules:** marketplace and payments expose their final request and\nresponse shapes but do not process real transactions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "extensionToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "assets",
+      "description": "Asset CRUD and every ingestion route",
+      "item": [
+        {
+          "name": "Create an asset with no file and no source URL.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Brand palette notes\",\n  \"description\": \"\",\n  \"type\": \"image\",\n  \"category\": \"UI Kit\",\n  \"tags\": [\n    \"dashboard\",\n    \"dark-mode\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"section\": \"UI\",\n  \"licenseType\": \"unknown\",\n  \"licenseNote\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "For notes, references and placeholders. The file-backed routes are below."
+          },
+          "response": []
+        },
+        {
+          "name": "List the authenticated user’s assets.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Repeat the param or pass a comma-separated list.",
+                  "disabled": true
+                },
+                {
+                  "key": "sourceType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "licenseType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sourcePlatform",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "projectId",
+                  "value": "",
+                  "description": "Only assets in this project.",
+                  "disabled": true
+                },
+                {
+                  "key": "section",
+                  "value": "",
+                  "description": "Only assets in this section of a project.",
+                  "disabled": true
+                },
+                {
+                  "key": "tags",
+                  "value": "",
+                  "description": "Tag slugs. An asset must carry every slug listed to match.",
+                  "disabled": true
+                },
+                {
+                  "key": "deleted",
+                  "value": "false",
+                  "description": "Return soft-deleted assets (the trash) instead of live ones.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Paginated, sortable and filterable. `q` matches title, description and category. Pass `deleted=true` for the trash."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload one or more files, or a folder as a zip.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                "upload"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "title",
+                  "type": "text",
+                  "value": "",
+                  "description": "Only applied when exactly one file is sent.",
+                  "src": []
+                },
+                {
+                  "key": "description",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "type",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "category",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "tags",
+                  "type": "text",
+                  "value": "",
+                  "description": "Comma-separated.",
+                  "src": []
+                },
+                {
+                  "key": "projectId",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "section",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "licenseType",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "licenseNote",
+                  "type": "text",
+                  "value": "",
+                  "src": []
+                },
+                {
+                  "key": "expandZip",
+                  "type": "text",
+                  "value": "false",
+                  "src": []
+                }
+              ]
+            },
+            "description": "Send files under the `files` field. One asset is created per file. Pass `expandZip=true` to unpack a .zip into one asset per entry — that is how a folder is imported. Returns an array even for a single file."
+          },
+          "response": []
+        },
+        {
+          "name": "Import an asset from a pasted URL.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assets/from-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                "from-url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AudioLux dashboard mockup\",\n  \"description\": \"\",\n  \"type\": \"image\",\n  \"category\": \"UI Kit\",\n  \"tags\": [\n    \"dashboard\",\n    \"dark-mode\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"section\": \"UI\",\n  \"licenseType\": \"unknown\",\n  \"licenseNote\": \"\",\n  \"sourceUrl\": \"https://www.figma.com/file/abc123/AudioLux\",\n  \"fetchMetadata\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Fetches the page for its title, description and preview image unless `fetchMetadata` is false. A site that is slow or blocks scrapers does not fail the import — the domain is used as the title instead."
+          },
+          "response": []
+        },
+        {
+          "name": "Import a purchased asset from a marketplace link.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assets/from-marketplace-link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                "from-marketplace-link"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AudioLux dashboard mockup\",\n  \"description\": \"\",\n  \"type\": \"image\",\n  \"category\": \"UI Kit\",\n  \"tags\": [\n    \"dashboard\",\n    \"dark-mode\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"section\": \"UI\",\n  \"licenseType\": \"unknown\",\n  \"licenseNote\": \"\",\n  \"sourceUrl\": \"https://www.figma.com/file/abc123/AudioLux\",\n  \"fetchMetadata\": true,\n  \"sourcePlatform\": \"envato\",\n  \"purchasePrice\": 29,\n  \"purchaseCurrency\": \"USD\",\n  \"purchaseDate\": \"2026-08-14\",\n  \"purchaseOrderRef\": \"ENV-88213\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "The URL import plus manually entered purchase details. No marketplace API is contacted — every purchase field is optional and supplied by you."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload limits this server enforces.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/limits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                "limits"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one asset.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update an asset.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AudioLux dashboard mockup\",\n  \"description\": \"\",\n  \"type\": \"image\",\n  \"category\": \"UI Kit\",\n  \"tags\": [\n    \"dashboard\",\n    \"dark-mode\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"section\": \"UI\",\n  \"licenseType\": \"unknown\",\n  \"licenseNote\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Only the fields you send change. Sending `tags` replaces the whole tag set for the asset."
+          },
+          "response": []
+        },
+        {
+          "name": "Move an asset to the trash.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id"
+              ]
+            },
+            "description": "A soft delete — assets are never hard-deleted. The file stays in storage and the asset stops counting against your quota. Reversible with POST /assets/:id/restore."
+          },
+          "response": []
+        },
+        {
+          "name": "Restore an asset from the trash.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "description": "OAuth login, JWT issuing and refresh",
+      "item": [
+        {
+          "name": "Start the Google OAuth flow.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Open this in a browser — it 302s to Google’s consent screen. Not callable from fetch/XHR."
+          },
+          "response": []
+        },
+        {
+          "name": "Start the GitHub OAuth flow.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/github",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "github"
+              ]
+            },
+            "description": "Optional provider. Returns 503 when GITHUB_CLIENT_ID is not set."
+          },
+          "response": []
+        },
+        {
+          "name": "Exchange a refresh token for a new token pair.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Refresh tokens rotate: the presented token is revoked and a new one returned. Replaying an already-rotated token revokes every session for that user."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke one refresh token.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Idempotent — revoking an unknown or already-revoked token is not an error."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke every refresh token for the authenticated user.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout-all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "The authenticated user’s profile.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "extension",
+      "description": "Browser-extension tokens and the capture endpoint",
+      "item": [
+        {
+          "name": "Issue a long-lived extension token.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/extension/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "extension",
+                "token"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chrome on my laptop\",\n  \"expiresInDays\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Call this from the signed-in web app and paste the result into the extension. The token is returned ONCE and only its hash is stored — it cannot be shown again."
+          },
+          "response": []
+        },
+        {
+          "name": "List the authenticated user’s extension tokens.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/extension/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "extension",
+                "tokens"
+              ]
+            },
+            "description": "Shows a prefix and last-used time, never the token itself."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke an extension token.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/extension/tokens/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "extension",
+                "tokens",
+                ":id"
+              ]
+            },
+            "description": "Takes effect immediately. The record is kept, marked revoked, so the user can still see it in the list."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify an extension token and identify its owner.",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Extension-Token",
+                "value": "{{extensionToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/extension/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "extension",
+                "me"
+              ]
+            },
+            "description": "The extension calls this once at setup to confirm the pasted token works.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Capture the current page as an asset.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Extension-Token",
+                "value": "{{extensionToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/extension/capture",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "extension",
+                "capture"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceUrl\": \"https://dribbble.com/shots/123456-dashboard\",\n  \"title\": \"Dashboard UI concept\",\n  \"description\": \"\",\n  \"previewUrl\": \"\",\n  \"type\": \"image\",\n  \"category\": \"Inspiration\",\n  \"tags\": [\n    \"inspiration\",\n    \"dashboard\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"section\": \"\",\n  \"licenseType\": \"unknown\",\n  \"fetchMetadata\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Authenticated by the extension token, not a JWT. Runs the same asset-creation path as POST /assets/from-url — same validation, tag creation, project checks and background indexing — and records sourceType \"extension\".",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "health",
+      "description": "Liveness and dependency checks",
+      "item": [
+        {
+          "name": "Liveness and dependency check.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "marketplace",
+      "description": "Marketplace listings (STUB)",
+      "item": [
+        {
+          "name": "[STUB] Create a marketplace listing.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AudioLux UI Kit\",\n  \"description\": \"\",\n  \"price\": 29,\n  \"currency\": \"USD\",\n  \"coverUrl\": \"\",\n  \"assetIds\": [\n    \"\"\n  ],\n  \"status\": \"draft\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "NOT IMPLEMENTED — returns 501. The route, DTO and database schema are final; selling requires seller verification and payouts, which are out of scope for this build."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Browse marketplace listings.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sellerId",
+                  "value": "",
+                  "description": "Only listings from this seller.",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "description": "Minimum price, inclusive.",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "description": "Maximum price, inclusive.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns sample listings so the frontend can be built today. Every filter below is honoured against the samples. Each listing carries `isStub: true`."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Fetch one listing.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings",
+                ":id"
+              ]
+            },
+            "description": "Only the sample listings exist. Anything else returns 404."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Update a listing.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AudioLux UI Kit\",\n  \"description\": \"\",\n  \"price\": 29,\n  \"currency\": \"USD\",\n  \"coverUrl\": \"\",\n  \"assetIds\": [\n    \"\"\n  ],\n  \"status\": \"draft\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "NOT IMPLEMENTED — returns 501. The DTO is final."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Delete a listing.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings",
+                ":id"
+              ]
+            },
+            "description": "NOT IMPLEMENTED — returns 501."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Buy a listing.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/marketplace/listings/:id/purchase",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "marketplace",
+                "listings",
+                ":id",
+                "purchase"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"successUrl\": \"https://app.creatorsvault.dev/purchases/success\",\n  \"cancelUrl\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "NO MONEY MOVES. This does run the full path for real — it creates a Transaction row and goes through the PaymentProvider interface — so the flow is testable end to end and the response shape is final. `isLive` is false while MockPaymentProvider is bound."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "description": "Payment sessions and transactions (STUB)",
+      "item": [
+        {
+          "name": "Which payment provider is bound, and whether it is live.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "status"
+              ]
+            },
+            "description": "Public so a frontend can hide or label purchase UI before anyone signs in."
+          },
+          "response": []
+        },
+        {
+          "name": "The authenticated user’s transactions.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/transactions?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "listingId",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "These are real database rows. They record purchase attempts made through the stubbed provider, so `isLive` is false on every one."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one transaction.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/transactions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "transactions",
+                ":id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Refund a transaction.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/transactions/:id/refund",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "transactions",
+                ":id",
+                "refund"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 0,\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Goes through PaymentProvider.refund(). With MockPaymentProvider bound this always reports success and moves no money."
+          },
+          "response": []
+        },
+        {
+          "name": "[STUB] Payment provider webhook.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "webhook"
+              ]
+            },
+            "description": "Public, because the gateway calls it — authentication is by signature, not by token. A real provider MUST verify the signature over the raw body before trusting the event."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "projects",
+      "description": "Projects and their sections",
+      "item": [
+        {
+          "name": "Create a project.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AudioLux\",\n  \"description\": \"Music visualiser product design\",\n  \"coverUrl\": \"https://cdn.example.com/cover.png\",\n  \"color\": \"#7C5CFF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List the authenticated user’s projects.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "includeArchived",
+                  "value": "false",
+                  "description": "Include archived projects in the result.",
+                  "disabled": true
+                },
+                {
+                  "key": "deleted",
+                  "value": "false",
+                  "description": "Return deleted projects (the trash) instead of live ones.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Archived projects are hidden unless `includeArchived=true`. `q` matches name and description."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one project.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update a project. Only the fields you send change.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AudioLux\",\n  \"description\": \"Music visualiser product design\",\n  \"coverUrl\": \"https://cdn.example.com/cover.png\",\n  \"color\": \"#7C5CFF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Move a project to the trash.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id"
+              ]
+            },
+            "description": "A soft delete. Its assets keep their projectId and stay listed in GET /assets, so nothing looks lost. Reversible with POST /projects/:id/restore."
+          },
+          "response": []
+        },
+        {
+          "name": "List the assets in a project.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id/assets?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id",
+                "assets"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Repeat the param or pass a comma-separated list.",
+                  "disabled": true
+                },
+                {
+                  "key": "sourceType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "licenseType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sourcePlatform",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "projectId",
+                  "value": "",
+                  "description": "Only assets in this project.",
+                  "disabled": true
+                },
+                {
+                  "key": "section",
+                  "value": "",
+                  "description": "Only assets in this section of a project.",
+                  "disabled": true
+                },
+                {
+                  "key": "tags",
+                  "value": "",
+                  "description": "Tag slugs. An asset must carry every slug listed to match.",
+                  "disabled": true
+                },
+                {
+                  "key": "deleted",
+                  "value": "false",
+                  "description": "Return soft-deleted assets (the trash) instead of live ones.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Accepts every filter `GET /assets` does — filter by `section` to read one sub-group."
+          },
+          "response": []
+        },
+        {
+          "name": "The sections in use in a project, with a count each.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id/sections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id",
+                "sections"
+              ]
+            },
+            "description": "Sections are free text on the asset, so this is derived from the assets rather than stored. A `section` of null groups the unfiled assets."
+          },
+          "response": []
+        },
+        {
+          "name": "Archive a project.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id/archive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id",
+                "archive"
+              ]
+            },
+            "description": "Hides it from the default listing. Its assets are untouched."
+          },
+          "response": []
+        },
+        {
+          "name": "Bring an archived project back into the default listing.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id/unarchive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id",
+                "unarchive"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restore a project from the trash.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/:id/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                ":id",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "relationships",
+      "description": "The asset relationship graph",
+      "item": [
+        {
+          "name": "Connect an asset to another asset or to a project.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/relationships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAssetId\": \"00000000-0000-4000-8000-000000000000\",\n  \"targetAssetId\": \"00000000-0000-4000-8000-000000000000\",\n  \"targetProjectId\": \"00000000-0000-4000-8000-000000000000\",\n  \"relationType\": \"used_in\",\n  \"reason\": \"used in the AudioLux dashboard hero\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Edges are directed and are not mirrored: \"A used_in B\" does not create \"B used_in A\". Both endpoints must be yours."
+          },
+          "response": []
+        },
+        {
+          "name": "List relationships.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relationships?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "relationType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "assetId",
+                  "value": "",
+                  "description": "Edges touching this asset, in either direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "projectId",
+                  "value": "",
+                  "description": "Edges pointing at this project.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Filter by `assetId` (matches either end), `projectId`, or `relationType`. `q` searches the reason text."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one relationship.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relationships/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                ":id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change a relationship’s type or reason.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/relationships/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"relationType\": \"used_in\",\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Re-pointing an edge is not an update — delete it and create the new one."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a relationship.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relationships/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                ":id"
+              ]
+            },
+            "description": "Permanent, and neither asset is affected — an edge holds no content of its own."
+          },
+          "response": []
+        },
+        {
+          "name": "Everything connected to this asset, with the reason text.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id/relationships?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id",
+                "relationships"
+              ],
+              "query": [
+                {
+                  "key": "relationType",
+                  "value": "",
+                  "description": "Return only edges of this type.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns edges in both directions, flattened so each entry describes the other end. `direction` is \"outgoing\" when this asset is the source and \"incoming\" when another asset points at it."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "description": "Keyword search, semantic search and similarity",
+      "item": [
+        {
+          "name": "Keyword search. The fast default.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "The search text. Matches title, description, category, tags and platform.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Keyword matching produces no usable relevance rank, so results are ordered by a real column. Use POST /search/semantic when relevance ordering is what you want.",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "projectId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "tags",
+                  "value": "",
+                  "description": "Tag slugs. An asset must carry them all.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Matches title, description, category, source platform and tag names. Makes no AI call, so it is instant and free — use this for most queries."
+          },
+          "response": []
+        },
+        {
+          "name": "Semantic search by meaning.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/search/semantic",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "semantic"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"q\": \"something moody for a music app landing page\",\n  \"limit\": 20,\n  \"minSimilarity\": 0.15,\n  \"type\": [\n    \"image\"\n  ],\n  \"projectId\": \"00000000-0000-4000-8000-000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Embeds the query and ranks assets by cosine similarity to their stored vectors. Degrades to keyword search rather than failing — always check `strategy` in the response."
+          },
+          "response": []
+        },
+        {
+          "name": "Whether semantic search is usable right now, and how much is indexed.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Index the authenticated user’s assets that have no embedding yet.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/reindex",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "reindex"
+              ]
+            },
+            "description": "Indexing normally happens automatically in the background when an asset is created. This catches up assets created while the provider was down, or before one was configured, and is the migration path after changing EMBEDDING_DRIVER."
+          },
+          "response": []
+        },
+        {
+          "name": "Assets similar to this one, with a similarity score.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/:id/similar?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets",
+                ":id",
+                "similar"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "minSimilarity",
+                  "value": "0.3",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Compares stored embeddings, so it makes no AI call. Returns an empty list with a `reason` when the asset has not been indexed yet."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "tags",
+      "description": "Tags and tag auto-suggest",
+      "item": [
+        {
+          "name": "Create a tag.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dark Mode\",\n  \"color\": \"#7C5CFF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Idempotent — a name that slugs to an existing tag returns that tag rather than a conflict. Tags are also created implicitly when you send `tags` on an asset."
+          },
+          "response": []
+        },
+        {
+          "name": "List the authenticated user’s tags.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "usageCount",
+                  "description": "`usageCount` sorts by how many live assets carry the tag.",
+                  "disabled": true
+                },
+                {
+                  "key": "usedOnly",
+                  "value": "false",
+                  "description": "Hide tags that are not on any live asset.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Sorted by usage by default. `q` matches both the name and the slug."
+          },
+          "response": []
+        },
+        {
+          "name": "Suggest tags for an asset or for typed text.",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags/suggest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "suggest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": \"00000000-0000-4000-8000-000000000000\",\n  \"title\": \"AudioLux dashboard dark mode mockup\",\n  \"description\": \"\",\n  \"category\": \"UI Kit\",\n  \"exclude\": [\n    \"\"\n  ],\n  \"limit\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Blends three signals: tags you already use that match the text, tags that co-occur on your similar assets, and salient new terms. Works with no AI provider configured; when one is, an extra semantic pass re-ranks the results."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one tag.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                ":id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rename or recolour a tag.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dark Mode\",\n  \"color\": \"#7C5CFF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Renaming also changes the slug, which is what asset filters use — update any saved filters accordingly."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a tag.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                ":id"
+              ]
+            },
+            "description": "Permanent, unlike assets and projects — a tag holds no content, so deleting it only detaches it from assets. No asset is deleted."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "description": "User profiles and admin user management",
+      "item": [
+        {
+          "name": "The authenticated user’s profile.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update the authenticated user’s own profile.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"avatarUrl\": \"https://cdn.example.com/avatar.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all users. Admin only.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "1-based page number.",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page. Capped at 100.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction.",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Free-text filter. The fields it covers are documented per endpoint.",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "plan",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "authProvider",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Paginated. `q` matches email and name. Sortable by createdAt, email, name, storageUsedMB."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch one user.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ]
+            },
+            "description": "A non-admin may only read their own record."
+          },
+          "response": []
+        },
+        {
+          "name": "Change a user’s role or plan. Admin only.",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"user\",\n  \"plan\": \"free\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Kept separate from PATCH /users/me so that a user can never escalate their own role."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

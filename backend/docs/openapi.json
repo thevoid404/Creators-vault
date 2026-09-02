@@ -1,0 +1,5804 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "HealthController_check_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "status": "ok",
+                    "uptimeSeconds": 42,
+                    "database": "up",
+                    "pgvector": "installed",
+                    "timestamp": "2026-09-02T10:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Liveness and dependency check.",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/auth/google": {
+      "get": {
+        "description": "Open this in a browser — it 302s to Google’s consent screen. Not callable from fetch/XHR.",
+        "operationId": "AuthController_googleLogin_v1",
+        "parameters": [],
+        "responses": {
+          "503": {
+            "description": "Google OAuth is not configured on this server."
+          }
+        },
+        "summary": "Start the Google OAuth flow.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/github": {
+      "get": {
+        "description": "Optional provider. Returns 503 when GITHUB_CLIENT_ID is not set.",
+        "operationId": "AuthController_githubLogin_v1",
+        "parameters": [],
+        "responses": {
+          "503": {
+            "description": "GitHub OAuth is not configured on this server."
+          }
+        },
+        "summary": "Start the GitHub OAuth flow.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Refresh tokens rotate: the presented token is revoked and a new one returned. Replaying an already-rotated token revokes every session for that user.",
+        "operationId": "AuthController_refresh_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokensDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token is unknown, expired, or already used."
+          }
+        },
+        "summary": "Exchange a refresh token for a new token pair.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Idempotent — revoking an unknown or already-revoked token is not an error.",
+        "operationId": "AuthController_logout_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Revoke one refresh token.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout-all": {
+      "post": {
+        "operationId": "AuthController_logoutAll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "revokedSessions": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Revoke every refresh token for the authenticated user.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "The authenticated user’s profile.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "UsersController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "The authenticated user’s profile.",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateMe_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update the authenticated user’s own profile.",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "description": "Paginated. `q` matches email and name. Sortable by createdAt, email, name, storageUsedMB.",
+        "operationId": "UsersController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "email",
+                "name",
+                "storageUsedMB"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "user",
+                "admin"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "plan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "free",
+                "pro"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "authProvider",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "google",
+                "github"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of UserResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/UserResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all users. Admin only.",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "description": "A non-admin may only read their own record.",
+        "operationId": "UsersController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such user."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one user.",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "description": "Kept separate from PATCH /users/me so that a user can never escalate their own role.",
+        "operationId": "UsersController_updateAsAdmin_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserAdminDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Change a user’s role or plan. Admin only.",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/assets": {
+      "post": {
+        "description": "For notes, references and placeholders. The file-backed routes are below.",
+        "operationId": "AssetsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create an asset with no file and no source URL.",
+        "tags": [
+          "assets"
+        ]
+      },
+      "get": {
+        "description": "Paginated, sortable and filterable. `q` matches title, description and category. Pass `deleted=true` for the trash.",
+        "operationId": "AssetsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "title",
+                "fileSizeMB",
+                "type"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Repeat the param or pass a comma-separated list.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "vector",
+                  "font",
+                  "document",
+                  "video",
+                  "audio",
+                  "archive",
+                  "code_snippet",
+                  "design_file",
+                  "link",
+                  "other"
+                ]
+              }
+            }
+          },
+          {
+            "name": "sourceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upload",
+                  "url",
+                  "marketplace_link",
+                  "extension"
+                ]
+              }
+            }
+          },
+          {
+            "name": "licenseType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "personal",
+                  "commercial",
+                  "extended",
+                  "cc0",
+                  "cc_by",
+                  "mit",
+                  "apache_2_0",
+                  "gpl",
+                  "proprietary",
+                  "custom"
+                ]
+              }
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "UI Kit",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourcePlatform",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "envato",
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Only assets in this project.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "section",
+            "required": false,
+            "in": "query",
+            "description": "Only assets in this section of a project.",
+            "schema": {
+              "example": "UI",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "required": false,
+            "in": "query",
+            "description": "Tag slugs. An asset must carry every slug listed to match.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "in": "query",
+            "description": "Return soft-deleted assets (the trash) instead of live ones.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of AssetResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AssetResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the authenticated user’s assets.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/upload": {
+      "post": {
+        "description": "Send files under the `files` field. One asset is created per file. Pass `expandZip=true` to unpack a .zip into one asset per entry — that is how a folder is imported. Returns an array even for a single file.",
+        "operationId": "AssetsController_upload_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Only applied when exactly one file is sent."
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "description": "Comma-separated."
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "section": {
+                    "type": "string"
+                  },
+                  "licenseType": {
+                    "type": "string"
+                  },
+                  "licenseNote": {
+                    "type": "string"
+                  },
+                  "expandZip": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File too large, or the storage quota would be exceeded."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Upload one or more files, or a folder as a zip.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/from-url": {
+      "post": {
+        "description": "Fetches the page for its title, description and preview image unless `fetchMetadata` is false. A site that is slow or blocks scrapers does not fail the import — the domain is used as the title instead.",
+        "operationId": "AssetsController_createFromUrl_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssetFromUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Import an asset from a pasted URL.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/from-marketplace-link": {
+      "post": {
+        "description": "The URL import plus manually entered purchase details. No marketplace API is contacted — every purchase field is optional and supplied by you.",
+        "operationId": "AssetsController_createFromMarketplaceLink_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssetFromMarketplaceLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Import a purchased asset from a marketplace link.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/limits": {
+      "get": {
+        "operationId": "AssetsController_limits_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "maxUploadSizeMB": 100,
+                    "maxFilesPerRequest": 25,
+                    "storageQuotaMB": 2048
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Upload limits this server enforces.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/{id}": {
+      "get": {
+        "operationId": "AssetsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such asset, or it belongs to another user."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one asset.",
+        "tags": [
+          "assets"
+        ]
+      },
+      "patch": {
+        "description": "Only the fields you send change. Sending `tags` replaces the whole tag set for the asset.",
+        "operationId": "AssetsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAssetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update an asset.",
+        "tags": [
+          "assets"
+        ]
+      },
+      "delete": {
+        "description": "A soft delete — assets are never hard-deleted. The file stays in storage and the asset stops counting against your quota. Reversible with POST /assets/:id/restore.",
+        "operationId": "AssetsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Move an asset to the trash.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/assets/{id}/restore": {
+      "post": {
+        "operationId": "AssetsController_restore_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Restoring would exceed the storage quota."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Restore an asset from the trash.",
+        "tags": [
+          "assets"
+        ]
+      }
+    },
+    "/api/v1/tags": {
+      "post": {
+        "description": "Idempotent — a name that slugs to an existing tag returns that tag rather than a conflict. Tags are also created implicitly when you send `tags` on an asset.",
+        "operationId": "TagsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a tag.",
+        "tags": [
+          "tags"
+        ]
+      },
+      "get": {
+        "description": "Sorted by usage by default. `q` matches both the name and the slug.",
+        "operationId": "TagsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "`usageCount` sorts by how many live assets carry the tag.",
+            "schema": {
+              "default": "usageCount",
+              "enum": [
+                "createdAt",
+                "name",
+                "usageCount"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "usedOnly",
+            "required": false,
+            "in": "query",
+            "description": "Hide tags that are not on any live asset.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of TagResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TagResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the authenticated user’s tags.",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/api/v1/tags/suggest": {
+      "post": {
+        "description": "Blends three signals: tags you already use that match the text, tags that co-occur on your similar assets, and salient new terms. Works with no AI provider configured; when one is, an extra semantic pass re-ranks the results.",
+        "operationId": "TagsController_suggest_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestTagsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSuggestionDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The given assetId does not exist or is not yours."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Suggest tags for an asset or for typed text.",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/api/v1/tags/{id}": {
+      "get": {
+        "operationId": "TagsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tag, or it belongs to another user."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one tag.",
+        "tags": [
+          "tags"
+        ]
+      },
+      "patch": {
+        "description": "Renaming also changes the slug, which is what asset filters use — update any saved filters accordingly.",
+        "operationId": "TagsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "You already have a different tag with that name."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Rename or recolour a tag.",
+        "tags": [
+          "tags"
+        ]
+      },
+      "delete": {
+        "description": "Permanent, unlike assets and projects — a tag holds no content, so deleting it only detaches it from assets. No asset is deleted.",
+        "operationId": "TagsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "aa11…",
+                    "detachedAssets": 12
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete a tag.",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/api/v1/projects": {
+      "post": {
+        "operationId": "ProjectsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a project.",
+        "tags": [
+          "projects"
+        ]
+      },
+      "get": {
+        "description": "Archived projects are hidden unless `includeArchived=true`. `q` matches name and description.",
+        "operationId": "ProjectsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "description": "Include archived projects in the result.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "in": "query",
+            "description": "Return deleted projects (the trash) instead of live ones.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of ProjectResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ProjectResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the authenticated user’s projects.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such project, or it belongs to another user."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one project.",
+        "tags": [
+          "projects"
+        ]
+      },
+      "patch": {
+        "operationId": "ProjectsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update a project. Only the fields you send change.",
+        "tags": [
+          "projects"
+        ]
+      },
+      "delete": {
+        "description": "A soft delete. Its assets keep their projectId and stay listed in GET /assets, so nothing looks lost. Reversible with POST /projects/:id/restore.",
+        "operationId": "ProjectsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Move a project to the trash.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/assets": {
+      "get": {
+        "description": "Accepts every filter `GET /assets` does — filter by `section` to read one sub-group.",
+        "operationId": "ProjectsController_listAssets_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "title",
+                "fileSizeMB",
+                "type"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Repeat the param or pass a comma-separated list.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "vector",
+                  "font",
+                  "document",
+                  "video",
+                  "audio",
+                  "archive",
+                  "code_snippet",
+                  "design_file",
+                  "link",
+                  "other"
+                ]
+              }
+            }
+          },
+          {
+            "name": "sourceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upload",
+                  "url",
+                  "marketplace_link",
+                  "extension"
+                ]
+              }
+            }
+          },
+          {
+            "name": "licenseType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "personal",
+                  "commercial",
+                  "extended",
+                  "cc0",
+                  "cc_by",
+                  "mit",
+                  "apache_2_0",
+                  "gpl",
+                  "proprietary",
+                  "custom"
+                ]
+              }
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "UI Kit",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourcePlatform",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "envato",
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Only assets in this project.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "section",
+            "required": false,
+            "in": "query",
+            "description": "Only assets in this section of a project.",
+            "schema": {
+              "example": "UI",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "required": false,
+            "in": "query",
+            "description": "Tag slugs. An asset must carry every slug listed to match.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "in": "query",
+            "description": "Return soft-deleted assets (the trash) instead of live ones.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of AssetResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AssetResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the assets in a project.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/sections": {
+      "get": {
+        "description": "Sections are free text on the asset, so this is derived from the assets rather than stored. A `section` of null groups the unfiled assets.",
+        "operationId": "ProjectsController_listSections_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectSectionDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "The sections in use in a project, with a count each.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/archive": {
+      "post": {
+        "description": "Hides it from the default listing. Its assets are untouched.",
+        "operationId": "ProjectsController_archive_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Archive a project.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/unarchive": {
+      "post": {
+        "operationId": "ProjectsController_unarchive_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Bring an archived project back into the default listing.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/restore": {
+      "post": {
+        "operationId": "ProjectsController_restore_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Restore a project from the trash.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/relationships": {
+      "post": {
+        "description": "Edges are directed and are not mirrored: \"A used_in B\" does not create \"B used_in A\". Both endpoints must be yours.",
+        "operationId": "RelationshipsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRelationshipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No target, both targets, or an asset related to itself."
+          },
+          "409": {
+            "description": "An identical edge already exists."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Connect an asset to another asset or to a project.",
+        "tags": [
+          "relationships"
+        ]
+      },
+      "get": {
+        "description": "Filter by `assetId` (matches either end), `projectId`, or `relationType`. `q` searches the reason text.",
+        "operationId": "RelationshipsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "relationType"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "relationType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "used_in",
+                "derived_from",
+                "alternative_to",
+                "version_of",
+                "inspired_by",
+                "bundled_with",
+                "depends_on",
+                "related_to"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "required": false,
+            "in": "query",
+            "description": "Edges touching this asset, in either direction.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Edges pointing at this project.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of RelationshipResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/RelationshipResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List relationships.",
+        "tags": [
+          "relationships"
+        ]
+      }
+    },
+    "/api/v1/relationships/{id}": {
+      "get": {
+        "operationId": "RelationshipsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such relationship, or it is not yours."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one relationship.",
+        "tags": [
+          "relationships"
+        ]
+      },
+      "patch": {
+        "description": "Re-pointing an edge is not an update — delete it and create the new one.",
+        "operationId": "RelationshipsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRelationshipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Change a relationship’s type or reason.",
+        "tags": [
+          "relationships"
+        ]
+      },
+      "delete": {
+        "description": "Permanent, and neither asset is affected — an edge holds no content of its own.",
+        "operationId": "RelationshipsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "7c2d…"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete a relationship.",
+        "tags": [
+          "relationships"
+        ]
+      }
+    },
+    "/api/v1/assets/{id}/relationships": {
+      "get": {
+        "description": "Returns edges in both directions, flattened so each entry describes the other end. `direction` is \"outgoing\" when this asset is the source and \"incoming\" when another asset points at it.",
+        "operationId": "AssetRelationshipsController_listForAsset_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "relationType",
+            "required": false,
+            "in": "query",
+            "description": "Return only edges of this type.",
+            "schema": {
+              "enum": [
+                "used_in",
+                "derived_from",
+                "alternative_to",
+                "version_of",
+                "inspired_by",
+                "bundled_with",
+                "depends_on",
+                "related_to"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetConnectionDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such asset, or it is not yours."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Everything connected to this asset, with the reason text.",
+        "tags": [
+          "relationships"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "description": "Matches title, description, category, source platform and tag names. Makes no AI call, so it is instant and free — use this for most queries.",
+        "operationId": "SearchController_keyword_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "The search text. Matches title, description, category, tags and platform.",
+            "schema": {
+              "maxLength": 200,
+              "example": "dark dashboard",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Keyword matching produces no usable relevance rank, so results are ordered by a real column. Use POST /search/semantic when relevance ordering is what you want.",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "title",
+                "type"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "vector",
+                  "font",
+                  "document",
+                  "video",
+                  "audio",
+                  "archive",
+                  "code_snippet",
+                  "design_file",
+                  "link",
+                  "other"
+                ]
+              }
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "required": false,
+            "in": "query",
+            "description": "Tag slugs. An asset must carry them all.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of AssetResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AssetResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Keyword search. The fast default.",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/semantic": {
+      "post": {
+        "description": "Embeds the query and ranks assets by cosine similarity to their stored vectors. Degrades to keyword search rather than failing — always check `strategy` in the response.",
+        "operationId": "SearchController_semantic_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemanticSearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemanticSearchResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Semantic search by meaning.",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/status": {
+      "get": {
+        "operationId": "SearchController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "driver": "local",
+                    "available": true,
+                    "pgvector": true,
+                    "pendingAssets": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Whether semantic search is usable right now, and how much is indexed.",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/reindex": {
+      "post": {
+        "description": "Indexing normally happens automatically in the background when an asset is created. This catches up assets created while the provider was down, or before one was configured, and is the migration path after changing EMBEDDING_DRIVER.",
+        "operationId": "SearchController_reindex_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "processed": 12,
+                    "indexed": 12,
+                    "failed": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Index the authenticated user’s assets that have no embedding yet.",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/assets/{id}/similar": {
+      "get": {
+        "description": "Compares stored embeddings, so it makes no AI call. Returns an empty list with a `reason` when the asset has not been indexed yet.",
+        "operationId": "AssetSimilarityController_similar_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minSimilarity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.3,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "data": [
+                      {
+                        "asset": {
+                          "id": "…",
+                          "title": "Icon set"
+                        },
+                        "score": 0.92,
+                        "scoreLabel": "92% similar"
+                      }
+                    ],
+                    "total": 1,
+                    "reason": null
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such asset, or it is not yours."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Assets similar to this one, with a similarity score.",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/extension/token": {
+      "post": {
+        "description": "Call this from the signed-in web app and paste the result into the extension. The token is returned ONCE and only its hash is stored — it cannot be shown again.",
+        "operationId": "ExtensionController_createToken_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExtensionTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedExtensionTokenDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Issue a long-lived extension token.",
+        "tags": [
+          "extension"
+        ]
+      }
+    },
+    "/api/v1/extension/tokens": {
+      "get": {
+        "description": "Shows a prefix and last-used time, never the token itself.",
+        "operationId": "ExtensionController_listTokens_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExtensionTokenResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the authenticated user’s extension tokens.",
+        "tags": [
+          "extension"
+        ]
+      }
+    },
+    "/api/v1/extension/tokens/{id}": {
+      "delete": {
+        "description": "Takes effect immediately. The record is kept, marked revoked, so the user can still see it in the list.",
+        "operationId": "ExtensionController_revokeToken_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionTokenResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such token, or it is not yours."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Revoke an extension token.",
+        "tags": [
+          "extension"
+        ]
+      }
+    },
+    "/api/v1/extension/me": {
+      "get": {
+        "description": "The extension calls this once at setup to confirm the pasted token works.",
+        "operationId": "ExtensionController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "9f1c…",
+                    "email": "ada@example.com",
+                    "valid": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token missing, malformed, revoked or expired."
+          }
+        },
+        "security": [
+          {
+            "extension-token": []
+          }
+        ],
+        "summary": "Verify an extension token and identify its owner.",
+        "tags": [
+          "extension"
+        ]
+      }
+    },
+    "/api/v1/extension/capture": {
+      "post": {
+        "description": "Authenticated by the extension token, not a JWT. Runs the same asset-creation path as POST /assets/from-url — same validation, tag creation, project checks and background indexing — and records sourceType \"extension\".",
+        "operationId": "ExtensionController_capture_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtensionCaptureDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token missing, malformed, revoked or expired."
+          }
+        },
+        "security": [
+          {
+            "extension-token": []
+          }
+        ],
+        "summary": "Capture the current page as an asset.",
+        "tags": [
+          "extension"
+        ]
+      }
+    },
+    "/api/v1/payments/status": {
+      "get": {
+        "description": "Public so a frontend can hide or label purchase UI before anyone signs in.",
+        "operationId": "PaymentsController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Which payment provider is bound, and whether it is live.",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/transactions": {
+      "get": {
+        "description": "These are real database rows. They record purchase attempts made through the stubbed provider, so `isLive` is false on every one.",
+        "operationId": "PaymentsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "amount",
+                "status"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "pending",
+                "processing",
+                "succeeded",
+                "failed",
+                "refunded",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "listingId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of TransactionResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TransactionResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "The authenticated user’s transactions.",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/transactions/{id}": {
+      "get": {
+        "operationId": "PaymentsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fetch one transaction.",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/transactions/{id}/refund": {
+      "post": {
+        "description": "Goes through PaymentProvider.refund(). With MockPaymentProvider bound this always reports success and moves no money.",
+        "operationId": "PaymentsController_refund_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Refund a transaction.",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/payments/webhook": {
+      "post": {
+        "description": "Public, because the gateway calls it — authentication is by signature, not by token. A real provider MUST verify the signature over the raw body before trusting the event.",
+        "operationId": "PaymentsController_webhook_v1",
+        "parameters": [
+          {
+            "name": "x-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "received": true,
+                    "transactionId": "…",
+                    "status": "succeeded"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "[STUB] Payment provider webhook.",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/api/v1/marketplace/listings": {
+      "post": {
+        "description": "NOT IMPLEMENTED — returns 501. The route, DTO and database schema are final; selling requires seller verification and payouts, which are out of scope for this build.",
+        "operationId": "MarketplaceController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Create a marketplace listing.",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "get": {
+        "description": "Returns sample listings so the frontend can be built today. Every filter below is honoured against the samples. Each listing carries `isStub: true`.",
+        "operationId": "MarketplaceController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page. Capped at 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction.",
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Free-text filter. The fields it covers are documented per endpoint.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "price",
+                "title",
+                "publishedAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "draft",
+                "published",
+                "unlisted",
+                "sold_out",
+                "archived"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sellerId",
+            "required": false,
+            "in": "query",
+            "description": "Only listings from this seller.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "Minimum price, inclusive.",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "description": "Maximum price, inclusive.",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of ListingResponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ListingResponseDto"
+                          }
+                        },
+                        "meta": {
+                          "$ref": "#/components/schemas/PaginationMetaDto"
+                        }
+                      },
+                      "required": [
+                        "data",
+                        "meta"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Browse marketplace listings.",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/listings/{id}": {
+      "get": {
+        "description": "Only the sample listings exist. Anything else returns 404.",
+        "operationId": "MarketplaceController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such sample listing."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Fetch one listing.",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "patch": {
+        "description": "NOT IMPLEMENTED — returns 501. The DTO is final.",
+        "operationId": "MarketplaceController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Update a listing.",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "delete": {
+        "description": "NOT IMPLEMENTED — returns 501.",
+        "operationId": "MarketplaceController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Delete a listing.",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/listings/{id}/purchase": {
+      "post": {
+        "description": "NO MONEY MOVES. This does run the full path for real — it creates a Transaction row and goes through the PaymentProvider interface — so the flow is testable end to end and the response shape is final. `isLive` is false while MockPaymentProvider is bound.",
+        "operationId": "MarketplaceController_purchase_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseListingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such sample listing."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "[STUB] Buy a listing.",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Creators' Vault API",
+    "description": "Backend for Creators’ Vault — an intelligent digital asset management workspace.\n\nAll routes are versioned under `/api/v1`.\n\n**Auth:** obtain a JWT by completing the Google OAuth flow at\n`GET /api/v1/auth/google`, then send it as `Authorization: Bearer <accessToken>`.\n\n**Stubbed modules:** marketplace and payments expose their final request and\nresponse shapes but do not process real transactions.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "health",
+      "description": "Liveness and dependency checks"
+    },
+    {
+      "name": "auth",
+      "description": "OAuth login, JWT issuing and refresh"
+    },
+    {
+      "name": "users",
+      "description": "User profiles and admin user management"
+    },
+    {
+      "name": "assets",
+      "description": "Asset CRUD and every ingestion route"
+    },
+    {
+      "name": "projects",
+      "description": "Projects and their sections"
+    },
+    {
+      "name": "tags",
+      "description": "Tags and tag auto-suggest"
+    },
+    {
+      "name": "relationships",
+      "description": "The asset relationship graph"
+    },
+    {
+      "name": "search",
+      "description": "Keyword search, semantic search and similarity"
+    },
+    {
+      "name": "extension",
+      "description": "Browser-extension tokens and the capture endpoint"
+    },
+    {
+      "name": "marketplace",
+      "description": "Marketplace listings (STUB)"
+    },
+    {
+      "name": "payments",
+      "description": "Payment sessions and transactions (STUB)"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "in": "header"
+      },
+      "extension-token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Extension-Token",
+        "description": "Long-lived browser-extension token issued by POST /api/v1/extension/token."
+      }
+    },
+    "schemas": {
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "The refresh token issued by the login or the previous refresh."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "example": "ada@example.com"
+          },
+          "name": {
+            "type": "object",
+            "example": "Ada Lovelace",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "object",
+            "example": "https://lh3.googleusercontent.com/a/…",
+            "nullable": true
+          },
+          "authProvider": {
+            "type": "string",
+            "enum": [
+              "google",
+              "github"
+            ],
+            "example": "google"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ],
+            "example": "user"
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "pro"
+            ],
+            "example": "free",
+            "description": "Billing plan. The field exists; no billing logic is attached to it yet."
+          },
+          "storageUsedMB": {
+            "type": "number",
+            "example": 128.4,
+            "description": "Total size of this user’s stored files, in MB."
+          },
+          "storageQuotaMB": {
+            "type": "number",
+            "example": 2048,
+            "description": "Storage quota for this user, in MB."
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "authProvider",
+          "role",
+          "plan",
+          "storageUsedMB",
+          "storageQuotaMB",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuthTokensDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Send as `Authorization: Bearer <accessToken>`."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Present to POST /auth/refresh. Rotated on every use."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900,
+            "description": "Access-token lifetime, in seconds."
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ada Lovelace",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/avatar.png"
+          }
+        }
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 137
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 7
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
+      "PaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "array"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateUserAdminDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ]
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "pro"
+            ],
+            "description": "Set manually for now. Billing does not drive this field yet."
+          }
+        }
+      },
+      "CreateAssetDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Brand palette notes",
+            "description": "Falls back to the filename or the page title when omitted.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ],
+            "description": "Inferred from the file or the URL when omitted."
+          },
+          "category": {
+            "type": "string",
+            "example": "UI Kit",
+            "maxLength": 120
+          },
+          "tags": {
+            "example": [
+              "dashboard",
+              "dark-mode"
+            ],
+            "description": "Tag names. Tags that do not exist yet are created for this user.",
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Project to file this asset under."
+          },
+          "section": {
+            "type": "string",
+            "example": "UI",
+            "maxLength": 80,
+            "description": "Sub-group within the project."
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ],
+            "default": "unknown"
+          },
+          "licenseNote": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Free text. License documents are never parsed or interpreted."
+          }
+        }
+      },
+      "AssetProjectSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "AudioLux"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "AssetTagSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "dashboard"
+          },
+          "slug": {
+            "type": "string",
+            "example": "dashboard"
+          },
+          "color": {
+            "type": "object",
+            "example": "#7C5CFF",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "PurchaseInfoDto": {
+        "type": "object",
+        "properties": {
+          "price": {
+            "type": "object",
+            "example": 29,
+            "nullable": true
+          },
+          "currency": {
+            "type": "object",
+            "example": "USD",
+            "nullable": true
+          },
+          "date": {
+            "type": "object",
+            "nullable": true
+          },
+          "orderRef": {
+            "type": "object",
+            "example": "ENV-88213",
+            "nullable": true
+          }
+        }
+      },
+      "AssetResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard mockup"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ]
+          },
+          "category": {
+            "type": "object",
+            "example": "UI Kit",
+            "nullable": true
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "upload",
+              "url",
+              "marketplace_link",
+              "extension"
+            ]
+          },
+          "sourceUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "sourcePlatform": {
+            "type": "object",
+            "example": "envato",
+            "nullable": true
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ]
+          },
+          "licenseNote": {
+            "type": "object",
+            "nullable": true
+          },
+          "previewUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "fileUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "mimeType": {
+            "type": "object",
+            "example": "image/png",
+            "nullable": true
+          },
+          "fileSizeMB": {
+            "type": "object",
+            "example": 2.41,
+            "nullable": true
+          },
+          "project": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssetProjectSummaryDto"
+              }
+            ]
+          },
+          "section": {
+            "type": "object",
+            "example": "UI",
+            "nullable": true,
+            "description": "Sub-group within the project."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetTagSummaryDto"
+            }
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "purchase": {
+            "nullable": true,
+            "description": "Present on marketplace-link imports. Entered by hand; no marketplace API is called.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseInfoDto"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Importer metadata (favicon, og:image, …)."
+          },
+          "embeddingStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ready",
+              "failed",
+              "skipped"
+            ],
+            "description": "Whether this asset is indexed for semantic search."
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set when the asset is in the trash."
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "title",
+          "type",
+          "sourceType",
+          "licenseType",
+          "tags",
+          "version",
+          "embeddingStatus",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateAssetFromUrlDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard mockup",
+            "description": "Falls back to the filename or the page title when omitted.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ],
+            "description": "Inferred from the file or the URL when omitted."
+          },
+          "category": {
+            "type": "string",
+            "example": "UI Kit",
+            "maxLength": 120
+          },
+          "tags": {
+            "example": [
+              "dashboard",
+              "dark-mode"
+            ],
+            "description": "Tag names. Tags that do not exist yet are created for this user.",
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Project to file this asset under."
+          },
+          "section": {
+            "type": "string",
+            "example": "UI",
+            "maxLength": 80,
+            "description": "Sub-group within the project."
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ],
+            "default": "unknown"
+          },
+          "licenseNote": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Free text. License documents are never parsed or interpreted."
+          },
+          "sourceUrl": {
+            "type": "string",
+            "example": "https://www.figma.com/file/abc123/AudioLux"
+          },
+          "fetchMetadata": {
+            "type": "boolean",
+            "default": true,
+            "description": "Fetch the page for its title, description and preview image. Set false to skip the network call and use only what you send."
+          }
+        },
+        "required": [
+          "sourceUrl"
+        ]
+      },
+      "CreateAssetFromMarketplaceLinkDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard mockup",
+            "description": "Falls back to the filename or the page title when omitted.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ],
+            "description": "Inferred from the file or the URL when omitted."
+          },
+          "category": {
+            "type": "string",
+            "example": "UI Kit",
+            "maxLength": 120
+          },
+          "tags": {
+            "example": [
+              "dashboard",
+              "dark-mode"
+            ],
+            "description": "Tag names. Tags that do not exist yet are created for this user.",
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Project to file this asset under."
+          },
+          "section": {
+            "type": "string",
+            "example": "UI",
+            "maxLength": 80,
+            "description": "Sub-group within the project."
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ],
+            "default": "unknown"
+          },
+          "licenseNote": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Free text. License documents are never parsed or interpreted."
+          },
+          "sourceUrl": {
+            "type": "string",
+            "example": "https://www.figma.com/file/abc123/AudioLux"
+          },
+          "fetchMetadata": {
+            "type": "boolean",
+            "default": true,
+            "description": "Fetch the page for its title, description and preview image. Set false to skip the network call and use only what you send."
+          },
+          "sourcePlatform": {
+            "type": "string",
+            "example": "envato",
+            "maxLength": 80,
+            "description": "Marketplace name. Free text — inferred from the URL host when omitted."
+          },
+          "purchasePrice": {
+            "type": "number",
+            "example": 29,
+            "minimum": 0
+          },
+          "purchaseCurrency": {
+            "type": "string",
+            "example": "USD",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "purchaseDate": {
+            "type": "string",
+            "example": "2026-08-14",
+            "format": "date-time"
+          },
+          "purchaseOrderRef": {
+            "type": "string",
+            "example": "ENV-88213",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "sourceUrl"
+        ]
+      },
+      "UpdateAssetDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard mockup",
+            "description": "Falls back to the filename or the page title when omitted.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ],
+            "description": "Inferred from the file or the URL when omitted."
+          },
+          "category": {
+            "type": "string",
+            "example": "UI Kit",
+            "maxLength": 120
+          },
+          "tags": {
+            "example": [
+              "dashboard",
+              "dark-mode"
+            ],
+            "description": "Tag names. Tags that do not exist yet are created for this user.",
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Send null to remove the asset from its project.",
+            "nullable": true
+          },
+          "section": {
+            "type": "string",
+            "example": "UI",
+            "maxLength": 80,
+            "description": "Sub-group within the project."
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ],
+            "default": "unknown"
+          },
+          "licenseNote": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Free text. License documents are never parsed or interpreted."
+          }
+        }
+      },
+      "CreateTagDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Dark Mode",
+            "maxLength": 60
+          },
+          "color": {
+            "type": "string",
+            "example": "#7C5CFF"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "TagResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Dark Mode"
+          },
+          "slug": {
+            "type": "string",
+            "example": "dark-mode",
+            "description": "Canonical form. Filter by this."
+          },
+          "color": {
+            "type": "object",
+            "example": "#7C5CFF",
+            "nullable": true
+          },
+          "usageCount": {
+            "type": "number",
+            "example": 12,
+            "description": "Live assets carrying this tag."
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "usageCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SuggestTagsDto": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Suggest for an existing asset. Its title, description, category and type are used, and tags it already carries are excluded."
+          },
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard dark mode mockup",
+            "description": "Free text to suggest from. Use this before an asset exists.",
+            "maxLength": 500
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "category": {
+            "type": "string",
+            "example": "UI Kit",
+            "maxLength": 120
+          },
+          "exclude": {
+            "description": "Tags already chosen. Excluded from the suggestions.",
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 25,
+            "default": 8
+          }
+        }
+      },
+      "TagSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "dashboard"
+          },
+          "slug": {
+            "type": "string",
+            "example": "dashboard"
+          },
+          "score": {
+            "type": "number",
+            "example": 0.82,
+            "description": "Confidence, 0–1. Suggestions are returned highest first."
+          },
+          "reason": {
+            "type": "string",
+            "example": "existing-tag",
+            "enum": [
+              "existing-tag",
+              "co-occurrence",
+              "keyword"
+            ],
+            "description": "Why this was suggested — lets the UI group or explain the list."
+          },
+          "exists": {
+            "type": "boolean",
+            "example": false,
+            "description": "False when accepting this suggestion would create a new tag."
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "score",
+          "reason",
+          "exists"
+        ]
+      },
+      "UpdateTagDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Dark Mode",
+            "maxLength": 60
+          },
+          "color": {
+            "type": "string",
+            "example": "#7C5CFF"
+          }
+        }
+      },
+      "CreateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "AudioLux",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "example": "Music visualiser product design",
+            "maxLength": 5000
+          },
+          "coverUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/cover.png"
+          },
+          "color": {
+            "type": "string",
+            "example": "#7C5CFF",
+            "description": "Hex colour used by the UI."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ProjectResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "AudioLux"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "coverUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "color": {
+            "type": "object",
+            "example": "#7C5CFF",
+            "nullable": true
+          },
+          "assetCount": {
+            "type": "number",
+            "example": 24,
+            "description": "Live assets in this project. Excludes trashed ones."
+          },
+          "archivedAt": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set while the project is archived."
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set while the project is in the trash."
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "assetCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ProjectSectionDto": {
+        "type": "object",
+        "properties": {
+          "section": {
+            "type": "object",
+            "example": "UI",
+            "nullable": true,
+            "description": "null groups the unfiled assets."
+          },
+          "assetCount": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "section",
+          "assetCount"
+        ]
+      },
+      "UpdateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "AudioLux",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "example": "Music visualiser product design",
+            "maxLength": 5000
+          },
+          "coverUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/cover.png"
+          },
+          "color": {
+            "type": "string",
+            "example": "#7C5CFF",
+            "description": "Hex colour used by the UI."
+          }
+        }
+      },
+      "CreateRelationshipDto": {
+        "type": "object",
+        "properties": {
+          "sourceAssetId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The asset the edge starts from."
+          },
+          "targetAssetId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Target asset. Send exactly one of targetAssetId or targetProjectId."
+          },
+          "targetProjectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Target project. Send exactly one of targetAssetId or targetProjectId."
+          },
+          "relationType": {
+            "type": "string",
+            "enum": [
+              "used_in",
+              "derived_from",
+              "alternative_to",
+              "version_of",
+              "inspired_by",
+              "bundled_with",
+              "depends_on",
+              "related_to"
+            ],
+            "default": "related_to"
+          },
+          "reason": {
+            "type": "string",
+            "example": "used in the AudioLux dashboard hero",
+            "maxLength": 500,
+            "description": "Why these are connected. This is the part a person actually reads."
+          }
+        },
+        "required": [
+          "sourceAssetId"
+        ]
+      },
+      "RelatedAssetSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "example": "AudioLux dashboard mockup"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ]
+          },
+          "previewUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "category": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "type"
+        ]
+      },
+      "RelationshipResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceAssetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetAssetId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          },
+          "targetProjectId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          },
+          "relationType": {
+            "type": "string",
+            "enum": [
+              "used_in",
+              "derived_from",
+              "alternative_to",
+              "version_of",
+              "inspired_by",
+              "bundled_with",
+              "depends_on",
+              "related_to"
+            ]
+          },
+          "reason": {
+            "type": "object",
+            "nullable": true
+          },
+          "sourceAsset": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedAssetSummaryDto"
+              }
+            ]
+          },
+          "targetAsset": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedAssetSummaryDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sourceAssetId",
+          "relationType",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateRelationshipDto": {
+        "type": "object",
+        "properties": {
+          "relationType": {
+            "type": "string",
+            "enum": [
+              "used_in",
+              "derived_from",
+              "alternative_to",
+              "version_of",
+              "inspired_by",
+              "bundled_with",
+              "depends_on",
+              "related_to"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "RelatedProjectSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "AudioLux"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "AssetConnectionDto": {
+        "type": "object",
+        "properties": {
+          "relationshipId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The relationship id, for editing or deleting it."
+          },
+          "relationType": {
+            "type": "string",
+            "enum": [
+              "used_in",
+              "derived_from",
+              "alternative_to",
+              "version_of",
+              "inspired_by",
+              "bundled_with",
+              "depends_on",
+              "related_to"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "outgoing",
+              "incoming"
+            ],
+            "description": "outgoing — this asset is the source. incoming — another asset points at this one."
+          },
+          "reason": {
+            "type": "object",
+            "nullable": true,
+            "example": "used in the AudioLux dashboard hero",
+            "description": "The reason text stored on the edge."
+          },
+          "asset": {
+            "nullable": true,
+            "description": "The asset at the other end. Null when the edge points at a project.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedAssetSummaryDto"
+              }
+            ]
+          },
+          "project": {
+            "nullable": true,
+            "description": "The project at the other end. Null when the edge points at an asset.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedProjectSummaryDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relationshipId",
+          "relationType",
+          "direction",
+          "createdAt"
+        ]
+      },
+      "SemanticSearchDto": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "example": "something moody for a music app landing page",
+            "description": "Natural-language query. Matched by meaning, not by exact words."
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          },
+          "minSimilarity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.15,
+            "description": "Drop results below this similarity. Raise it for a stricter result set."
+          },
+          "type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "image",
+                "vector",
+                "font",
+                "document",
+                "video",
+                "audio",
+                "archive",
+                "code_snippet",
+                "design_file",
+                "link",
+                "other"
+              ]
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "q"
+        ]
+      },
+      "ScoredAssetDto": {
+        "type": "object",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/AssetResponseDto"
+          },
+          "score": {
+            "type": "number",
+            "example": 0.92,
+            "description": "Similarity, 0–1."
+          },
+          "scoreLabel": {
+            "type": "string",
+            "example": "92% similar",
+            "description": "Pre-formatted for display."
+          }
+        },
+        "required": [
+          "asset",
+          "score",
+          "scoreLabel"
+        ]
+      },
+      "SemanticSearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoredAssetDto"
+            }
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "semantic",
+              "keyword"
+            ],
+            "description": "Which strategy produced these results. \"keyword\" means the semantic path was unavailable and the query fell back."
+          },
+          "fallbackReason": {
+            "type": "object",
+            "nullable": true,
+            "example": "No embedding provider is configured.",
+            "description": "Why the fallback happened. Null when strategy is \"semantic\"."
+          },
+          "total": {
+            "type": "number",
+            "example": 7
+          }
+        },
+        "required": [
+          "data",
+          "strategy",
+          "total"
+        ]
+      },
+      "CreateExtensionTokenDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Chrome on my laptop",
+            "description": "Label so the user can tell their tokens apart when revoking one.",
+            "maxLength": 80
+          },
+          "expiresInDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3650,
+            "description": "Days until the token expires. Omit to use the server default (EXTENSION_TOKEN_TTL_DAYS)."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreatedExtensionTokenDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Chrome on my laptop"
+          },
+          "tokenPrefix": {
+            "type": "string",
+            "example": "cv_ext_9f1c2d",
+            "description": "First characters of the token, so the user can identify it in a list."
+          },
+          "lastUsedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "example": "cv_ext_9f1c2d3e4a5b6c7d8e9f0a1b2c3d4e5f60718293",
+            "description": "The token itself. Shown once and never again — only its hash is stored. Send it as the X-Extension-Token header."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tokenPrefix",
+          "createdAt",
+          "token"
+        ]
+      },
+      "ExtensionTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Chrome on my laptop"
+          },
+          "tokenPrefix": {
+            "type": "string",
+            "example": "cv_ext_9f1c2d",
+            "description": "First characters of the token, so the user can identify it in a list."
+          },
+          "lastUsedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tokenPrefix",
+          "createdAt"
+        ]
+      },
+      "ExtensionCaptureDto": {
+        "type": "object",
+        "properties": {
+          "sourceUrl": {
+            "type": "string",
+            "example": "https://dribbble.com/shots/123456-dashboard"
+          },
+          "title": {
+            "type": "string",
+            "example": "Dashboard UI concept",
+            "description": "The page title, read by the extension. Falls back to the domain.",
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "description": "Page description, or the text the user had selected when they captured.",
+            "maxLength": 5000
+          },
+          "previewUrl": {
+            "type": "string",
+            "description": "Image the extension found on the page (og:image, or the image right-clicked)."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "vector",
+              "font",
+              "document",
+              "video",
+              "audio",
+              "archive",
+              "code_snippet",
+              "design_file",
+              "link",
+              "other"
+            ],
+            "description": "Inferred from the URL when omitted."
+          },
+          "category": {
+            "type": "string",
+            "example": "Inspiration",
+            "maxLength": 120
+          },
+          "tags": {
+            "example": [
+              "inspiration",
+              "dashboard"
+            ],
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "personal",
+              "commercial",
+              "extended",
+              "cc0",
+              "cc_by",
+              "mit",
+              "apache_2_0",
+              "gpl",
+              "proprietary",
+              "custom"
+            ]
+          },
+          "fetchMetadata": {
+            "type": "boolean",
+            "default": false,
+            "description": "Ask the server to fetch the page for metadata as well. Off by default — the extension can already read the page, including pages the server cannot reach."
+          }
+        },
+        "required": [
+          "sourceUrl"
+        ]
+      },
+      "PaymentStatusDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "stripe",
+              "paddle",
+              "lemonsqueezy"
+            ],
+            "example": "mock"
+          },
+          "isLive": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether the bound provider can process real payments. False in this build."
+          },
+          "message": {
+            "type": "string",
+            "example": "Payments are stubbed. No gateway is integrated and no money moves."
+          }
+        },
+        "required": [
+          "provider",
+          "isLive",
+          "message"
+        ]
+      },
+      "TransactionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "listingId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "example": 29
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "succeeded",
+              "failed",
+              "refunded",
+              "cancelled"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "stripe",
+              "paddle",
+              "lemonsqueezy"
+            ]
+          },
+          "providerSessionId": {
+            "type": "object",
+            "nullable": true
+          },
+          "providerPaymentId": {
+            "type": "object",
+            "nullable": true
+          },
+          "failureReason": {
+            "type": "object",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "refundedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "isLive": {
+            "type": "boolean",
+            "example": false,
+            "description": "False in this build — no real payment gateway processed this transaction."
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "amount",
+          "currency",
+          "status",
+          "provider",
+          "createdAt",
+          "updatedAt",
+          "isLive"
+        ]
+      },
+      "RefundTransactionDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Partial refund amount. Omit to refund in full."
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "CreateListingDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "AudioLux UI Kit",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "price": {
+            "type": "number",
+            "example": 29,
+            "minimum": 0,
+            "description": "Major units, e.g. 29.00."
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "USD"
+          },
+          "coverUrl": {
+            "type": "string",
+            "description": "Cover image for the listing."
+          },
+          "assetIds": {
+            "description": "Assets bundled into this listing. Must be your own.",
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "unlisted",
+              "sold_out",
+              "archived"
+            ],
+            "default": "draft",
+            "description": "Create as a draft, or publish immediately."
+          }
+        },
+        "required": [
+          "title",
+          "price",
+          "assetIds"
+        ]
+      },
+      "ListingSellerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "object",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ListingItemDto": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "example": "Dashboard mockup"
+          },
+          "type": {
+            "type": "string",
+            "example": "design_file"
+          },
+          "previewUrl": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "assetId",
+          "title",
+          "type"
+        ]
+      },
+      "ListingResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seller": {
+            "$ref": "#/components/schemas/ListingSellerDto"
+          },
+          "title": {
+            "type": "string",
+            "example": "AudioLux UI Kit"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "example": 29
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "coverUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "unlisted",
+              "sold_out",
+              "archived"
+            ]
+          },
+          "items": {
+            "description": "The assets included in this listing.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListingItemDto"
+            }
+          },
+          "itemCount": {
+            "type": "number",
+            "example": 3
+          },
+          "publishedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "isStub": {
+            "type": "boolean",
+            "example": true,
+            "description": "Always true in this build. The marketplace is a stub: this listing is placeholder data and cannot be bought."
+          }
+        },
+        "required": [
+          "id",
+          "seller",
+          "title",
+          "price",
+          "currency",
+          "status",
+          "items",
+          "itemCount",
+          "createdAt",
+          "updatedAt",
+          "isStub"
+        ]
+      },
+      "UpdateListingDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "AudioLux UI Kit",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "price": {
+            "type": "number",
+            "example": 29,
+            "minimum": 0,
+            "description": "Major units, e.g. 29.00."
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "USD"
+          },
+          "coverUrl": {
+            "type": "string",
+            "description": "Cover image for the listing."
+          },
+          "assetIds": {
+            "description": "Assets bundled into this listing. Must be your own.",
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "unlisted",
+              "sold_out",
+              "archived"
+            ],
+            "default": "draft",
+            "description": "Create as a draft, or publish immediately."
+          }
+        }
+      },
+      "PurchaseListingDto": {
+        "type": "object",
+        "properties": {
+          "successUrl": {
+            "type": "string",
+            "description": "Where to send the buyer after a successful payment.",
+            "example": "https://app.creatorsvault.dev/purchases/success"
+          },
+          "cancelUrl": {
+            "type": "string",
+            "description": "Where to send the buyer if they cancel."
+          }
+        }
+      },
+      "PurchaseResponseDto": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The local transaction created for this attempt."
+          },
+          "status": {
+            "type": "string",
+            "example": "pending",
+            "description": "Transaction status at creation."
+          },
+          "sessionId": {
+            "type": "string",
+            "example": "mock_cs_9f1c2d3e…",
+            "description": "Provider-side checkout session id."
+          },
+          "checkoutUrl": {
+            "type": "string",
+            "example": "http://localhost:4000/api/v1/payments/mock-checkout/mock_cs_9f1c…",
+            "description": "Send the buyer here to pay."
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "provider": {
+            "type": "string",
+            "example": "mock",
+            "description": "Which PaymentProvider handled this."
+          },
+          "isLive": {
+            "type": "boolean",
+            "example": false,
+            "description": "False in this build. No money moves and no real gateway is contacted — the checkout URL is a placeholder."
+          }
+        },
+        "required": [
+          "transactionId",
+          "status",
+          "sessionId",
+          "checkoutUrl",
+          "expiresAt",
+          "provider",
+          "isLive"
+        ]
+      }
+    }
+  }
+}

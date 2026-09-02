@@ -1,0 +1,24 @@
+# Local Postgres with pgvector already compiled in.
+# Start with:  docker compose up -d
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: creators-vault-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vault
+      POSTGRES_PASSWORD: vault
+      POSTGRES_DB: creators_vault
+    ports:
+      - '5432:5432'
+    volumes:
+      - creators-vault-db:/var/lib/postgresql/data
+      - ./prisma/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vault -d creators_vault']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  creators-vault-db:

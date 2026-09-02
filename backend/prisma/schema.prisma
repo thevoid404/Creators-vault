@@ -1,0 +1,448 @@
+// ---------------------------------------------------------------------------
+// Creators' Vault — Prisma schema
+//
+// This schema is COMPLETE from day one, including the marketplace and payment
+// tables, so that adding those features later is purely additive and never a
+// migration that restructures existing modules.
+//
+// Conventions:
+//   * every primary key is a UUID
+//   * assets are soft-deleted (`deletedAt`), never hard-deleted
+//   * every foreign key and every sortable column is indexed
+//   * `Asset.embedding` is a pgvector column — see the note above the field
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ===========================================================================
+// Enums
+// ===========================================================================
+
+enum Role {
+  user
+  admin
+}
+
+/// Billing plan. The field exists now; no billing logic is attached to it yet.
+enum Plan {
+  free
+  pro
+}
+
+enum AuthProvider {
+  google
+  github
+}
+
+/// How an asset entered the vault. Every ingestion route funnels through one
+/// internal `AssetsService.createAsset()` and only differs by this value.
+enum AssetSourceType {
+  upload
+  url
+  marketplace_link
+  extension
+}
+
+/// Broad asset kind, used for filtering and for choosing an embedding strategy.
+enum AssetType {
+  image
+  vector
+  font
+  document
+  video
+  audio
+  archive
+  code_snippet
+  design_file
+  link
+  other
+}
+
+/// Kept deliberately coarse. License *documents* are not parsed or interpreted
+/// anywhere in this system — this is a manually chosen label only.
+enum LicenseType {
+  unknown
+  personal
+  commercial
+  extended
+  cc0
+  cc_by
+  mit
+  apache_2_0
+  gpl
+  proprietary
+  custom
+}
+
+/// Edge label on the asset/project relationship graph. Deliberately an enum on a
+/// flexible edge table rather than rigid foreign keys, so new relation kinds are
+/// an additive enum value and nothing else.
+enum RelationType {
+  used_in
+  derived_from
+  alternative_to
+  version_of
+  inspired_by
+  bundled_with
+  depends_on
+  related_to
+}
+
+enum EmbeddingStatus {
+  pending
+  ready
+  failed
+  skipped
+}
+
+enum ListingStatus {
+  draft
+  published
+  unlisted
+  sold_out
+  archived
+}
+
+enum TransactionStatus {
+  pending
+  processing
+  succeeded
+  failed
+  refunded
+  cancelled
+}
+
+/// Which `PaymentProvider` implementation handled a transaction. `mock` is the
+/// only implementation that exists today.
+enum PaymentProviderKind {
+  mock
+  stripe
+  paddle
+  lemonsqueezy
+}
+
+// ===========================================================================
+// Identity
+// ===========================================================================
+
+model User {
+  id            String       @id @default(uuid()) @db.Uuid
+  email         String       @unique
+  name          String?
+  avatarUrl     String?
+  authProvider  AuthProvider
+  /// Provider-side account id (Google `sub`, GitHub numeric id).
+  providerId    String
+  role          Role         @default(user)
+  plan          Plan         @default(free)
+  storageUsedMB Float        @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  assets          Asset[]
+  projects        Project[]
+  tags            Tag[]
+  refreshTokens   RefreshToken[]
+  extensionTokens ExtensionToken[]
+  listings        MarketplaceListing[]
+  transactions    Transaction[]
+
+  @@unique([authProvider, providerId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+/// Rotating refresh tokens. Only the SHA-256 hash of the token is stored.
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+/// Long-lived token used by the future browser extension so it never has to
+/// implement an OAuth flow of its own. Only the SHA-256 hash is stored.
+model ExtensionToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  name        String
+  tokenHash   String    @unique
+  /// First characters of the token, shown in the UI so a user can tell tokens apart.
+  tokenPrefix String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("extension_tokens")
+}
+
+// ===========================================================================
+// Organisation
+// ===========================================================================
+
+model Project {
+  id          String    @id @default(uuid()) @db.Uuid
+  ownerId     String    @db.Uuid
+  name        String
+  description String?
+  coverUrl    String?
+  color       String?
+  archivedAt  DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  assets Asset[]
+
+  @@index([ownerId])
+  @@index([createdAt])
+  @@index([ownerId, deletedAt])
+  @@map("projects")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @db.Uuid
+  name      String
+  /// Lowercased, trimmed form of `name`. Uniqueness is enforced on this.
+  slug      String
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  assets AssetTag[]
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+  @@index([slug])
+  @@map("tags")
+}
+
+// ===========================================================================
+// Assets
+// ===========================================================================
+
+model Asset {
+  id          String          @id @default(uuid()) @db.Uuid
+  ownerId     String          @db.Uuid
+  projectId   String?         @db.Uuid
+  /// Optional sub-grouping inside a project, e.g. "UI", "Brand", "Development".
+  section     String?
+  title       String
+  description String?
+  type        AssetType       @default(other)
+  category    String?
+  sourceType  AssetSourceType
+  sourceUrl   String?
+  /// e.g. "envato", "gumroad", "creativemarket" — free text, no marketplace API.
+  sourcePlatform String?
+  licenseType    LicenseType  @default(unknown)
+  licenseNote    String?
+
+  previewUrl String?
+  fileUrl    String?
+  /// Storage key as returned by the active `StorageProvider`; provider-agnostic.
+  storageKey String?
+  mimeType   String?
+  fileSizeMB Float?
+  checksum   String?
+
+  // --- manual purchase info (marketplace-link imports; entered by hand) ---
+  purchasePrice    Decimal?  @db.Decimal(12, 2)
+  purchaseCurrency String?   @db.VarChar(3)
+  purchaseDate     DateTime?
+  purchaseOrderRef String?
+
+  version  Int   @default(1)
+  /// Free-form provider/importer metadata (favicon, og:image, dimensions, ...).
+  metadata Json?
+
+  // --- semantic search ---
+  embeddingStatus EmbeddingStatus @default(pending)
+  embeddingModel  String?
+  embeddedAt      DateTime?
+  /// pgvector column. Prisma cannot read or write `Unsupported` fields through
+  /// the generated client, which is intentional here: all vector reads/writes go
+  /// through raw SQL in the embeddings repository so the ANN index is used.
+  /// Dimension is fixed at 384 (see EMBEDDING_DIMENSIONS in .env.example).
+  embedding Unsupported("vector(384)")?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  owner   User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  tags              AssetTag[]
+  relationshipsFrom AssetRelationship[]      @relation("RelationshipSource")
+  relationshipsTo   AssetRelationship[]      @relation("RelationshipTarget")
+  listings          MarketplaceListingItem[]
+
+  @@index([ownerId])
+  @@index([projectId])
+  @@index([type])
+  @@index([category])
+  @@index([sourceType])
+  @@index([createdAt])
+  @@index([ownerId, deletedAt])
+  @@index([ownerId, type, deletedAt])
+  @@index([embeddingStatus])
+  @@map("assets")
+}
+
+/// Explicit many-to-many join so the pair is indexable in both directions.
+model AssetTag {
+  assetId   String   @db.Uuid
+  tagId     String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([assetId, tagId])
+  @@index([assetId])
+  @@index([tagId])
+  @@map("asset_tags")
+}
+
+// ===========================================================================
+// Relationship graph
+// ===========================================================================
+
+/// A directed edge in the asset graph. `targetAssetId` and `targetProjectId` are
+/// both nullable and exactly one is set, so an edge can point at an asset or at a
+/// project without a schema change. Supporting a new node kind later means one
+/// new nullable column, not a restructure.
+model AssetRelationship {
+  id              String       @id @default(uuid()) @db.Uuid
+  ownerId         String       @db.Uuid
+  sourceAssetId   String       @db.Uuid
+  targetAssetId   String?      @db.Uuid
+  targetProjectId String?      @db.Uuid
+  relationType    RelationType @default(related_to)
+  /// Short human explanation, e.g. "used in AudioLux dashboard".
+  reason          String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  sourceAsset Asset  @relation("RelationshipSource", fields: [sourceAssetId], references: [id], onDelete: Cascade)
+  targetAsset Asset? @relation("RelationshipTarget", fields: [targetAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceAssetId, targetAssetId, relationType])
+  @@index([ownerId])
+  @@index([sourceAssetId])
+  @@index([targetAssetId])
+  @@index([targetProjectId])
+  @@index([relationType])
+  @@map("asset_relationships")
+}
+
+// ===========================================================================
+// Marketplace  —  SCHEMA IS FINAL, SERVICE LOGIC IS STUBBED
+// ===========================================================================
+
+model MarketplaceListing {
+  id          String        @id @default(uuid()) @db.Uuid
+  sellerId    String        @db.Uuid
+  title       String
+  description String?
+  /// Decimal(12,2) rather than integer minor units: exact for money and keeps
+  /// the JSON contract readable for the frontend.
+  price       Decimal       @db.Decimal(12, 2)
+  currency    String        @default("USD") @db.VarChar(3)
+  coverUrl    String?
+  status      ListingStatus @default(draft)
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  seller       User                     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  items        MarketplaceListingItem[]
+  transactions Transaction[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@map("marketplace_listings")
+}
+
+/// The assets bundled into a listing. A join table rather than an `assetIds[]`
+/// array so a listing's contents stay queryable and referentially intact.
+model MarketplaceListingItem {
+  listingId String   @db.Uuid
+  assetId   String   @db.Uuid
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  listing MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  asset   Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([listingId, assetId])
+  @@index([listingId])
+  @@index([assetId])
+  @@map("marketplace_listing_items")
+}
+
+// ===========================================================================
+// Payments  —  SCHEMA IS FINAL, SERVICE LOGIC IS STUBBED
+// ===========================================================================
+
+model Transaction {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @db.Uuid
+  listingId String?             @db.Uuid
+  amount    Decimal             @db.Decimal(12, 2)
+  currency  String              @default("USD") @db.VarChar(3)
+  status    TransactionStatus   @default(pending)
+  provider  PaymentProviderKind @default(mock)
+  /// Provider-side identifiers, named generically so a real gateway slots in
+  /// without a migration.
+  providerSessionId String?
+  providerPaymentId String?
+  /// Raw provider payload, kept for reconciliation and webhook replay.
+  providerPayload   Json?
+  failureReason     String?
+  refundedAt        DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing MarketplaceListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([listingId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerSessionId])
+  @@map("transactions")
+}
