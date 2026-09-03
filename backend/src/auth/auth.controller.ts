@@ -150,22 +150,27 @@ export class AuthController {
   /**
    * Both provider callbacks land here.
    *
-   * With `FRONTEND_URL` set, the browser is redirected to it with the tokens
-   * appended — the normal flow. With `FRONTEND_URL` blank, the tokens are
-   * returned as JSON instead, which is how the flow is tested with curl or
-   * Postman before any frontend exists.
+   * The redirect target depends on the `state` the flow was started with:
+   * `state=admin` (from the operators-only admin panel) comes back to
+   * `ADMIN_URL`, everything else to `FRONTEND_URL`. With the chosen target blank,
+   * the tokens are returned as JSON instead — how the flow is tested with curl
+   * or Postman before any frontend exists.
    */
   private async completeOAuth(req: RequestWithUser, res: Response): Promise<void> {
     const profile = req.user as unknown as OAuthProfile;
     const tokens = await this.auth.loginWithOAuth(profile, this.sessionContext(req));
 
-    const frontendUrl = this.config.get<string>('frontendUrl');
-    if (!frontendUrl) {
+    const isAdmin = req.query?.state === 'admin';
+    const target = isAdmin
+      ? this.config.get<string>('adminUrl')
+      : this.config.get<string>('frontendUrl');
+
+    if (!target) {
       res.status(HttpStatus.OK).json(tokens);
       return;
     }
 
-    const redirect = new URL('/auth/callback', frontendUrl);
+    const redirect = new URL('/auth/callback', target);
     redirect.searchParams.set('accessToken', tokens.accessToken);
     redirect.searchParams.set('refreshToken', tokens.refreshToken);
     res.redirect(redirect.toString());

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module';
 import { AssetsModule } from './assets/assets.module';
 import { AuthModule } from './auth/auth.module';
 import { EmbeddingsModule } from './embeddings/embeddings.module';
@@ -63,6 +64,8 @@ import { UsersModule } from './users/users.module';
     // Phase 7 - stubs by design
     PaymentsModule,
     MarketplaceModule,
+    // Admin panel backend — composes read/aggregate views over the above.
+    AdminModule,
   ],
   providers: [
     // Order matters: authenticate, then check the role.

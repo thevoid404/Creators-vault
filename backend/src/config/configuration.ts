@@ -26,6 +26,12 @@ export const configuration = () => ({
   port: toInt(process.env.PORT, 4000),
   apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:4000',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+  /**
+   * The operators-only admin panel. A separate app on its own origin, so the
+   * OAuth callback needs a second redirect target: `GET /auth/google?state=admin`
+   * comes back here instead of to `frontendUrl`.
+   */
+  adminUrl: process.env.ADMIN_URL ?? 'http://localhost:3100',
   corsOrigins: toList(process.env.CORS_ORIGINS),
 
   database: {

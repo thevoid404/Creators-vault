@@ -32,6 +32,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new UnauthorizedException('The account for this token no longer exists.');
     }
+    // Re-reading the user is also what makes an admin suspension take effect on
+    // the very next request rather than at the next token refresh.
+    if (user.suspendedAt) {
+      throw new UnauthorizedException('This account has been suspended.');
+    }
     return { id: user.id, email: user.email, role: user.role };
   }
 }

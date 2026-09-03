@@ -142,6 +142,45 @@ export class PaymentsService {
     );
   }
 
+  /**
+   * Platform-wide transaction list for the admin panel. Unlike `list()` this is
+   * not scoped to one user. Still every row carries `isLive: false` while the
+   * mock provider is bound.
+   */
+  async adminList(query: {
+    skip: number;
+    limit: number;
+    page: number;
+    sortBy: 'createdAt' | 'amount' | 'status';
+    sortOrder: 'asc' | 'desc';
+    status?: TransactionStatus;
+    provider?: PaymentProviderKind;
+    userId?: string;
+  }): Promise<PaginatedResponseDto<TransactionResponseDto>> {
+    const where: Prisma.TransactionWhereInput = {
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.provider ? { provider: query.provider } : {}),
+      ...(query.userId ? { userId: query.userId } : {}),
+    };
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.transaction.findMany({
+        where,
+        orderBy: { [query.sortBy]: query.sortOrder },
+        skip: query.skip,
+        take: query.limit,
+      }),
+      this.prisma.transaction.count({ where }),
+    ]);
+
+    return paginate(
+      rows.map((row) => TransactionResponseDto.from(row, this.provider.isLive)),
+      total,
+      query.page,
+      query.limit,
+    );
+  }
+
   async findOne(userId: string, id: string): Promise<TransactionResponseDto> {
     const transaction = await this.prisma.transaction.findUnique({ where: { id } });
     if (!transaction || transaction.userId !== userId) {

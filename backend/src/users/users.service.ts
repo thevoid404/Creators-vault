@@ -54,6 +54,11 @@ export class UsersService {
     });
 
     if (existing) {
+      if (existing.suspendedAt) {
+        throw new ForbiddenException(
+          'This account has been suspended. Contact a platform administrator.',
+        );
+      }
       const changed =
         (profile.name != null && profile.name !== existing.name) ||
         (profile.avatarUrl != null && profile.avatarUrl !== existing.avatarUrl) ||
@@ -112,6 +117,23 @@ export class UsersService {
   async updateAsAdmin(id: string, dto: UpdateUserAdminDto): Promise<User> {
     await this.findById(id);
     return this.prisma.user.update({ where: { id }, data: { ...dto } });
+  }
+
+  /**
+   * Suspends or reactivates an account. Suspension is a reversible timestamp:
+   * `JwtStrategy` and `AuthService.refresh` both reject a suspended user, so a
+   * suspension takes effect on the account's next request. Reactivating clears
+   * the timestamp; the user must sign in again since their sessions lapsed.
+   */
+  async setSuspended(id: string, suspended: boolean): Promise<User> {
+    const user = await this.findById(id);
+    if (Boolean(user.suspendedAt) === suspended) {
+      return user;
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: { suspendedAt: suspended ? new Date() : null },
+    });
   }
 
   async list(query: ListUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {

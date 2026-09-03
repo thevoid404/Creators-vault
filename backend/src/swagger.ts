@@ -47,6 +47,7 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     .addTag('extension', 'Browser-extension tokens and the capture endpoint')
     .addTag('marketplace', 'Marketplace listings (STUB)')
     .addTag('payments', 'Payment sessions and transactions (STUB)')
+    .addTag('admin', 'Operators-only platform oversight and moderation')
     .build();
 
   return SwaggerModule.createDocument(app, config);

@@ -134,6 +134,11 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('The account for this token no longer exists.');
     }
+    if (user.suspendedAt) {
+      // Don't rotate — leave the presented token spent-but-unrenewed so a
+      // reactivated account can still sign in fresh.
+      throw new UnauthorizedException('This account has been suspended.');
+    }
 
     await this.prisma.refreshToken.update({
       where: { id: stored.id },

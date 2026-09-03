@@ -174,6 +174,26 @@ export class MarketplaceService {
     return paginate(page, rows.length, query.page, query.limit);
   }
 
+  /**
+   * Admin moderation of a listing (approve / reject before it goes live).
+   *
+   * The marketplace is a deliberate stub: listings are in-memory fixtures with no
+   * database row, and every listing write already returns 501 rather than
+   * silently pretending to persist. Moderation follows the same rule — the
+   * listing is checked to exist, then an honest 501 is returned. The route, the
+   * DTO and this behaviour are final; wiring real moderation is part of building
+   * the real marketplace.
+   */
+  async adminModerate(id: string, action: 'approve' | 'reject'): Promise<never> {
+    await this.findOne(id);
+    this.logger.log(`[STUB] Admin ${action} on listing ${id}`);
+    throw new NotImplementedException(
+      `Listing ${action} is not implemented in this build. The marketplace is a stub — ` +
+        'listings are sample data with no database row. This route and its response are final; ' +
+        'real moderation lands with the real marketplace (seller verification, payouts, review queue).',
+    );
+  }
+
   async findOne(id: string): Promise<ListingResponseDto> {
     const listing = MarketplaceService.MOCK_LISTINGS.find((candidate) => candidate.id === id);
     if (!listing) {

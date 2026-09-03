@@ -145,6 +145,10 @@ model User {
   role          Role         @default(user)
   plan          Plan         @default(free)
   storageUsedMB Float        @default(0)
+  /// Set by an admin from the admin panel. A suspended user cannot obtain or
+  /// refresh a session; existing access tokens stop working on their next
+  /// request (JwtStrategy re-reads the user). Reversible — reactivating clears it.
+  suspendedAt   DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -159,6 +163,7 @@ model User {
   @@unique([authProvider, providerId])
   @@index([role])
   @@index([createdAt])
+  @@index([suspendedAt])
   @@map("users")
 }
 

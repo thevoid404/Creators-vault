@@ -38,6 +38,12 @@ export class UserResponseDto {
   @ApiProperty({ example: 2048, description: 'Storage quota for this user, in MB.' })
   storageQuotaMB!: number;
 
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Set when an admin has suspended this account. A suspended user cannot sign in.',
+  })
+  suspendedAt!: Date | null;
+
   @ApiProperty()
   createdAt!: Date;
 
@@ -55,6 +61,7 @@ export class UserResponseDto {
       plan: user.plan,
       storageUsedMB: Number(user.storageUsedMB.toFixed(3)),
       storageQuotaMB,
+      suspendedAt: user.suspendedAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

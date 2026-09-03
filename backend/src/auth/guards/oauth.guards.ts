@@ -1,6 +1,20 @@
 import { ExecutionContext, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
+
+/**
+ * `GET /auth/{provider}?state=admin` round-trips `state` through the provider and
+ * back to the callback as `req.query.state`, where `completeOAuth` uses it to
+ * pick the redirect target (admin panel vs. main frontend). Only a small, known
+ * set of values is honoured there, so this is a redirect hint, not a trust
+ * boundary — the real gate is `role === 'admin'` on the returned profile.
+ */
+function stateOption(context: ExecutionContext): { state?: string } {
+  const req = context.switchToHttp().getRequest<Request>();
+  const state = req?.query?.state;
+  return typeof state === 'string' && state.length > 0 && state.length <= 64 ? { state } : {};
+}
 
 /**
  * A Passport strategy that was never registered fails with an opaque 500
@@ -30,8 +44,8 @@ export class GoogleOAuthGuard extends AuthGuard('google') {
     return (await super.canActivate(context)) as boolean;
   }
 
-  getAuthenticateOptions() {
-    return { session: false, prompt: 'select_account' };
+  getAuthenticateOptions(context: ExecutionContext) {
+    return { session: false, prompt: 'select_account', ...stateOption(context) };
   }
 }
 
@@ -46,7 +60,7 @@ export class GithubOAuthGuard extends AuthGuard('github') {
     return (await super.canActivate(context)) as boolean;
   }
 
-  getAuthenticateOptions() {
-    return { session: false };
+  getAuthenticateOptions(context: ExecutionContext) {
+    return { session: false, ...stateOption(context) };
   }
 }
