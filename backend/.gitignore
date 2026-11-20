@@ -11,8 +11,8 @@ build/
 .env.local
 .env.*.local
 
-# local file storage (StorageProvider: local-disk implementation)
-storage/
+# local file storage (StorageProvider: local-disk implementation - root storage directory only)
+/storage/
 uploads/
 
 # logs
