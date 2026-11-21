@@ -10,11 +10,26 @@ interface StatCardProps {
   loading?: boolean;
 }
 
-const TONE_BG: Record<NonNullable<StatCardProps["tone"]>, string> = {
-  primary: "bg-primary-soft text-primary-soft-foreground",
-  success: "bg-success-soft text-success-soft-foreground",
-  warning: "bg-warning-soft text-warning-soft-foreground",
-  info: "bg-info-soft text-info-soft-foreground",
+const TONE_STYLES: Record<
+  NonNullable<StatCardProps["tone"]>,
+  { badge: string; glow: string }
+> = {
+  primary: {
+    badge: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 dark:text-indigo-400 dark:border-indigo-500/30",
+    glow: "from-indigo-500/10 to-transparent",
+  },
+  success: {
+    badge: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30",
+    glow: "from-emerald-500/10 to-transparent",
+  },
+  warning: {
+    badge: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
+    glow: "from-amber-500/10 to-transparent",
+  },
+  info: {
+    badge: "bg-sky-500/10 text-sky-600 border-sky-500/20 dark:text-sky-400 dark:border-sky-500/30",
+    glow: "from-sky-500/10 to-transparent",
+  },
 };
 
 export function StatCard({
@@ -25,24 +40,44 @@ export function StatCard({
   tone = "primary",
   loading,
 }: StatCardProps) {
+  const styles = TONE_STYLES[tone];
+
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <span className={cn("flex size-8 items-center justify-center rounded-lg", TONE_BG[tone])}>
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-surface/80 p-5 shadow-lg backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl dark:border-white/10 dark:bg-[#141620]/90">
+      {/* Top subtle ambient glow */}
+      <div
+        className={cn(
+          "pointer-events-none absolute -top-10 -right-10 size-24 rounded-full bg-gradient-to-br blur-2xl",
+          styles.glow,
+        )}
+      />
+
+      <div className="relative z-10 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <span
+          className={cn(
+            "flex size-9 items-center justify-center rounded-2xl border backdrop-blur-md",
+            styles.badge,
+          )}
+        >
           <Icon className="size-4" />
         </span>
       </div>
-      {loading ? (
-        <div className="mt-3 h-7 w-16 animate-pulse rounded bg-surface-3" />
-      ) : (
-        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
-          {value}
-        </p>
-      )}
-      {hint && !loading && (
-        <p className="mt-1 text-xs text-subtle-foreground">{hint}</p>
-      )}
+
+      <div className="relative z-10 mt-3">
+        {loading ? (
+          <div className="h-8 w-20 animate-pulse rounded-xl bg-surface-3" />
+        ) : (
+          <p className="text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
+            {value}
+          </p>
+        )}
+        {hint && !loading && (
+          <p className="mt-1.5 text-xs font-medium text-muted-foreground">{hint}</p>
+        )}
+      </div>
     </div>
   );
 }

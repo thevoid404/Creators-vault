@@ -11,6 +11,8 @@ import {
   Sparkles,
   TriangleAlert,
   Plus,
+  ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Asset } from "@/lib/types";
@@ -75,57 +77,89 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Greeting + search */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {greeting()}
-          {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Here&apos;s a calm look at your vault.
-        </p>
+    <div className="space-y-8 pb-10">
+      {/* 
+        Hero Banner: Modern frosted glass greeting inspired by the login design.
+        Deep aura background in dark mode, crisp clean gradient in light mode.
+      */}
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface via-surface-2 to-surface p-6 shadow-xl sm:p-8 dark:border-white/10 dark:from-[#131520] dark:via-[#171a27] dark:to-[#0f1118]">
+        {/* Ambient background glows */}
+        <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-primary/10 blur-3xl dark:bg-primary/20" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 size-72 rounded-full bg-emerald-500/10 blur-3xl" />
 
-        <form onSubmit={runSearch} className="relative mt-4 max-w-2xl">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-subtle-foreground" />
-          <input
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="Search your assets — try “dark dashboard mockup”"
-            aria-label="Search your assets"
-            className="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-foreground shadow-sm placeholder:text-subtle-foreground focus-visible:border-primary focus-visible:outline-1 focus-visible:outline-primary"
-          />
+        <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md dark:border-white/10 dark:bg-white/5">
+              <Sparkles className="size-3.5 text-primary" />
+              <span>Workspace Overview</span>
+            </div>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              {greeting()}
+              {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Here&apos;s a calm, intelligent look at your creative vault today.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3">
+            <ButtonLink href="/assets/new" className="h-11 rounded-xl shadow-lg shadow-primary/20">
+              <Plus className="mr-1.5 size-4" />
+              New Asset
+            </ButtonLink>
+          </div>
+        </div>
+
+        {/* Floating Natural Language Search Bar (matching the Login card search aesthetic) */}
+        <form onSubmit={runSearch} className="relative z-10 mt-6 max-w-2xl">
+          <div className="relative flex items-center">
+            <Search className="pointer-events-none absolute left-4 size-5 text-muted-foreground" />
+            <input
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="Search by meaning or keyword — e.g. “dark dashboard mockup”..."
+              aria-label="Search your assets"
+              className="h-13 w-full rounded-2xl border border-border bg-surface/90 pl-12 pr-28 text-sm text-foreground shadow-inner backdrop-blur-md placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5"
+            />
+            <button
+              type="submit"
+              className="absolute right-2.5 flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-hover"
+            >
+              Search
+              <ArrowRight className="size-3.5" />
+            </button>
+          </div>
         </form>
       </div>
 
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* Quick Stats Grid: Glass-card aesthetic */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Total assets"
+          label="Total Assets"
           value={stats ? stats.total.toLocaleString() : "—"}
           icon={Boxes}
           tone="primary"
           loading={initialLoading}
         />
         <StatCard
-          label="Organized"
+          label="Organized Vault"
           value={stats ? formatPercent(stats.organizedPct) : "—"}
-          hint="in a project"
-          icon={Sparkles}
+          hint="assigned to a project"
+          icon={TrendingUp}
           tone="success"
           loading={initialLoading}
         />
         <StatCard
-          label="Active projects"
+          label="Active Projects"
           value={stats ? stats.activeProjects : "—"}
           icon={FolderKanban}
           tone="info"
           loading={initialLoading}
         />
         <StatCard
-          label="Needs attention"
+          label="Needs Attention"
           value={stats ? stats.needsAttention.length : "—"}
-          hint="recent items to tidy"
+          hint="missing tags or project"
           icon={TriangleAlert}
           tone="warning"
           loading={initialLoading}
@@ -133,21 +167,27 @@ export default function DashboardPage() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-danger-soft bg-danger-soft/40 px-4 py-3 text-sm text-danger-soft-foreground">
+        <div className="rounded-2xl border border-danger-soft bg-danger-soft/40 px-5 py-4 text-sm text-danger-soft-foreground backdrop-blur-md">
           Couldn&apos;t load your dashboard.{" "}
-          <button onClick={refetch} className="font-semibold underline">
+          <button onClick={refetch} className="font-semibold underline hover:text-danger">
             Retry
           </button>
         </div>
       ) : null}
 
+      {/* Dual column: Recently added & Needs attention */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recently added */}
-        <Section title="Recently added" viewAllHref="/assets?sortBy=createdAt">
+        <Section
+          title="Recently Added"
+          description="Latest creations & uploads"
+          viewAllHref="/assets?sortBy=createdAt"
+          className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+        >
           {initialLoading ? (
             <SkeletonRows />
           ) : data && data.recent.data.length > 0 ? (
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {data.recent.data.map((a) => (
                 <AssetRow key={a.id} asset={a} timeField="createdAt" />
               ))}
@@ -164,14 +204,15 @@ export default function DashboardPage() {
 
         {/* Needs attention */}
         <Section
-          title="Needs attention"
-          description="Recent items missing a project, tags or a description"
+          title="Needs Attention"
+          description="Recent items missing a project, tags or description"
           viewAllHref="/assets"
+          className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
         >
           {initialLoading ? (
             <SkeletonRows />
           ) : stats && stats.needsAttention.length > 0 ? (
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {stats.needsAttention.slice(0, 6).map((a) => (
                 <AssetRow
                   key={a.id}
@@ -191,8 +232,13 @@ export default function DashboardPage() {
         </Section>
       </div>
 
-      {/* Projects */}
-      <Section title="Projects" viewAllHref="/projects">
+      {/* Projects Showcase */}
+      <Section
+        title="Featured Projects"
+        description="Active workspaces and collections"
+        viewAllHref="/projects"
+        className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+      >
         {initialLoading ? (
           <ProjectGrid>
             {Array.from({ length: 3 }).map((_, i) => (
@@ -210,17 +256,26 @@ export default function DashboardPage() {
             icon={FolderKanban}
             title="No projects yet"
             description="Group related assets — UI, brand, code — into a project."
-            action={<ButtonLink href="/projects" variant="secondary">Create a project</ButtonLink>}
+            action={
+              <ButtonLink href="/projects" variant="secondary">
+                Create a project
+              </ButtonLink>
+            }
           />
         )}
       </Section>
 
       {/* Recently used */}
-      <Section title="Recently used" description="Assets you touched most recently" viewAllHref="/assets?sortBy=updatedAt">
+      <Section
+        title="Recently Used"
+        description="Assets you touched most recently"
+        viewAllHref="/assets?sortBy=updatedAt"
+        className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+      >
         {initialLoading ? (
           <SkeletonRows />
         ) : data && data.updated.data.length > 0 ? (
-          <motion.div layout className="grid gap-0.5 sm:grid-cols-2">
+          <motion.div layout className="grid gap-2 sm:grid-cols-2">
             {data.updated.data.map((a) => (
               <AssetRow key={a.id} asset={a} timeField="updatedAt" />
             ))}
@@ -237,10 +292,10 @@ export default function DashboardPage() {
 
 function SkeletonRows() {
   return (
-    <div className="space-y-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 px-2 py-2">
-          <div className="size-10 animate-pulse rounded-md bg-surface-3" />
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+          <div className="size-10 animate-pulse rounded-xl bg-surface-3" />
           <div className="flex-1 space-y-1.5">
             <div className="h-3.5 w-1/2 animate-pulse rounded bg-surface-3" />
             <div className="h-3 w-1/3 animate-pulse rounded bg-surface-3" />

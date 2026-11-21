@@ -2,89 +2,90 @@
 
 /* ------------------------------------------------------------------ *
  * Creators' Vault design system
- * Style: Flat Design · Type: Plus Jakarta Sans + JetBrains Mono
- * Brand: violet #7C5CFF · slate neutrals · emerald / amber / red
+ * Style: Modern Frosted Glass / Clean Geometry
+ * Palette: Deep cosmic obsidian, radiant violet/indigo, crisp slate
  * ------------------------------------------------------------------ */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* surfaces */
-  --background: #f7f7fb;
+  /* surfaces - Light mode: soft frosted slate with subtle cool tint */
+  --background: #f8fafc;
   --surface: #ffffff;
-  --surface-2: #f1f1f7;
-  --surface-3: #e9e9f2;
-  --overlay: rgba(17, 17, 27, 0.45);
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --overlay: rgba(15, 23, 42, 0.45);
 
   /* text */
-  --foreground: #191828;
-  --muted-foreground: #5b5b70;
-  --subtle-foreground: #86869c;
+  --foreground: #0f172a;
+  --muted-foreground: #475569;
+  --subtle-foreground: #94a3b8;
 
   /* lines */
-  --border: #e4e4ef;
-  --border-strong: #d3d3e0;
-  --ring: #7c5cff;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --ring: #6366f1;
 
-  /* brand */
-  --primary: #7c5cff;
-  --primary-hover: #6a49f2;
+  /* brand - matching the login indigo/violet accents */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
   --primary-foreground: #ffffff;
-  --primary-soft: #efe9ff;
-  --primary-soft-foreground: #4b32b8;
+  --primary-soft: #eef2ff;
+  --primary-soft-foreground: #4338ca;
 
   /* semantic */
-  --success: #12a150;
-  --success-soft: #e2f6ea;
-  --success-soft-foreground: #0b6b36;
-  --warning: #c07a00;
-  --warning-soft: #fbf0d9;
-  --warning-soft-foreground: #7a4d00;
-  --danger: #e5484d;
-  --danger-hover: #d33b40;
-  --danger-soft: #fdeaea;
-  --danger-soft-foreground: #a3282c;
-  --info: #3b82f6;
-  --info-soft: #e6effd;
-  --info-soft-foreground: #1d4fb0;
+  --success: #10b981;
+  --success-soft: #ecfdf5;
+  --success-soft-foreground: #047857;
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+  --warning-soft-foreground: #b45309;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-soft-foreground: #b91c1c;
+  --info: #0ea5e9;
+  --info-soft: #f0f9ff;
+  --info-soft-foreground: #0369a1;
 
-  --radius: 0.75rem;
+  --radius: 0.85rem;
 }
 
 .dark {
-  --background: #0d0d14;
-  --surface: #16161f;
-  --surface-2: #1d1d28;
-  --surface-3: #262634;
-  --overlay: rgba(0, 0, 0, 0.6);
+  /* surfaces - Dark mode: Exact match with login page (#0e0f14) & glass card layers */
+  --background: #0e0f14;
+  --surface: #14161f;
+  --surface-2: #1b1e2b;
+  --surface-3: #24283b;
+  --overlay: rgba(0, 0, 0, 0.7);
 
-  --foreground: #ececf4;
-  --muted-foreground: #a2a2b8;
-  --subtle-foreground: #74748a;
+  --foreground: #f8fafc;
+  --muted-foreground: #94a3b8;
+  --subtle-foreground: #64748b;
 
-  --border: #2a2a38;
-  --border-strong: #3a3a4c;
-  --ring: #927bff;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --ring: #818cf8;
 
-  --primary: #927bff;
-  --primary-hover: #a48fff;
-  --primary-foreground: #14121f;
-  --primary-soft: #211c3d;
-  --primary-soft-foreground: #c8bcff;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-foreground: #0e0f14;
+  --primary-soft: rgba(99, 102, 241, 0.15);
+  --primary-soft-foreground: #c7d2fe;
 
-  --success: #3dd68c;
-  --success-soft: #12281e;
-  --success-soft-foreground: #7ee9b6;
-  --warning: #f5c451;
-  --warning-soft: #2c2410;
-  --warning-soft-foreground: #f7d488;
-  --danger: #ff6369;
-  --danger-hover: #ff7a7f;
-  --danger-soft: #2c1719;
-  --danger-soft-foreground: #ff9ea1;
-  --info: #6aa8ff;
-  --info-soft: #16233b;
-  --info-soft-foreground: #a6c8ff;
+  --success: #34d399;
+  --success-soft: rgba(16, 185, 129, 0.15);
+  --success-soft-foreground: #a7f3d0;
+  --warning: #fbbf24;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --warning-soft-foreground: #fde68a;
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.15);
+  --danger-soft-foreground: #fca5a5;
+  --info: #38bdf8;
+  --info-soft: rgba(14, 165, 233, 0.15);
+  --info-soft-foreground: #bae6fd;
 }
 
 @theme inline {
@@ -111,70 +112,48 @@
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-success-soft-foreground: var(--success-soft-foreground);
+
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-warning-soft-foreground: var(--warning-soft-foreground);
+
   --color-danger: var(--danger);
   --color-danger-hover: var(--danger-hover);
   --color-danger-soft: var(--danger-soft);
   --color-danger-soft-foreground: var(--danger-soft-foreground);
+
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-info-soft-foreground: var(--info-soft-foreground);
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
-
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 0.35rem);
+  --radius-xl: var(--radius);
 }
 
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-  body {
-    background: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-  ::selection {
-    background: color-mix(in srgb, var(--color-primary) 28%, transparent);
-  }
-  :focus-visible {
-    outline: 2px solid var(--color-ring);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-  /* Thin, calm scrollbars */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border-strong) transparent;
-  }
+/* ------------------------------------------------------------------ *
+ * Base styling & scrollbars
+ * ------------------------------------------------------------------ */
+
+html {
+  color-scheme: light dark;
 }
 
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
+/* Smooth custom glass effect utility */
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .glass-panel {
+  background: rgba(20, 22, 31, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
