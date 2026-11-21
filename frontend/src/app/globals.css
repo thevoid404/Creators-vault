@@ -2,14 +2,13 @@
 
 /* ------------------------------------------------------------------ *
  * Creators' Vault design system
- * Style: Modern Frosted Glass / Clean Geometry
- * Palette: Deep cosmic obsidian, radiant violet/indigo, crisp slate
+ * Style: Modern Frosted Glass / Clean Elevated Dark Palette
  * ------------------------------------------------------------------ */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* surfaces - Light mode: soft frosted slate with subtle cool tint */
+  /* surfaces - Light mode */
   --background: #f8fafc;
   --surface: #ffffff;
   --surface-2: #f1f5f9;
@@ -26,7 +25,7 @@
   --border-strong: #cbd5e1;
   --ring: #6366f1;
 
-  /* brand - matching the login indigo/violet accents */
+  /* brand */
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --primary-foreground: #ffffff;
@@ -52,39 +51,43 @@
 }
 
 .dark {
-  /* surfaces - Dark mode: Exact match with login page (#0e0f14) & glass card layers */
-  --background: #0e0f14;
-  --surface: #14161f;
-  --surface-2: #1b1e2b;
-  --surface-3: #24283b;
-  --overlay: rgba(0, 0, 0, 0.7);
+  /* 
+   * Crisp Slate Dark Mode:
+   * Instead of pitch black, uses deep rich slate navy (#0d1117 / #131823 / #1a2233)
+   * Elevated contrast, visible component cards, and clear borders.
+   */
+  --background: #0d1117;
+  --surface: #141b27;
+  --surface-2: #1c2536;
+  --surface-3: #28354c;
+  --overlay: rgba(5, 8, 15, 0.75);
 
-  --foreground: #f8fafc;
+  --foreground: #f1f5f9;
   --muted-foreground: #94a3b8;
   --subtle-foreground: #64748b;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
+  --border: #222d3d;
+  --border-strong: #334155;
   --ring: #818cf8;
 
   --primary: #818cf8;
-  --primary-hover: #a5b4fc;
-  --primary-foreground: #0e0f14;
-  --primary-soft: rgba(99, 102, 241, 0.15);
+  --primary-hover: #9da8ff;
+  --primary-foreground: #0b0f19;
+  --primary-soft: rgba(129, 140, 248, 0.16);
   --primary-soft-foreground: #c7d2fe;
 
   --success: #34d399;
-  --success-soft: rgba(16, 185, 129, 0.15);
+  --success-soft: rgba(52, 211, 153, 0.15);
   --success-soft-foreground: #a7f3d0;
   --warning: #fbbf24;
-  --warning-soft: rgba(245, 158, 11, 0.15);
+  --warning-soft: rgba(251, 191, 36, 0.15);
   --warning-soft-foreground: #fde68a;
   --danger: #f87171;
   --danger-hover: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.15);
+  --danger-soft: rgba(248, 113, 113, 0.15);
   --danger-soft-foreground: #fca5a5;
   --info: #38bdf8;
-  --info-soft: rgba(14, 165, 233, 0.15);
+  --info-soft: rgba(56, 189, 248, 0.15);
   --info-soft-foreground: #bae6fd;
 }
 
@@ -129,10 +132,6 @@
   --radius-xl: var(--radius);
 }
 
-/* ------------------------------------------------------------------ *
- * Base styling & scrollbars
- * ------------------------------------------------------------------ */
-
 html {
   color-scheme: light dark;
 }
@@ -141,19 +140,4 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-}
-
-/* Smooth custom glass effect utility */
-.glass-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-}
-
-.dark .glass-panel {
-  background: rgba(20, 22, 31, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }

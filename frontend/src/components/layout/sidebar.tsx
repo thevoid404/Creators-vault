@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Wordmark } from "@/components/brand/logo";
 import { PRIMARY_NAV, SECONDARY_NAV, isActive } from "./nav-config";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       <Link
         href={"/assets/new" as Route}
         onClick={onNavigate}
-        className="mb-2 flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/20 transition-colors hover:bg-primary-hover"
+        className="mb-3 flex h-10 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/25 transition-all hover:bg-primary-hover hover:shadow-md hover:shadow-primary/30"
       >
         <Plus className="size-4" />
         Add asset
@@ -33,16 +33,16 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "group relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+              "group relative flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all duration-150",
               active
-                ? "text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                ? "bg-surface-2 text-foreground shadow-sm font-semibold border border-border"
+                : "text-muted-foreground hover:bg-surface-2/60 hover:text-foreground",
             )}
           >
             {active && (
               <motion.span
                 layoutId="sidebar-active"
-                className="absolute inset-0 rounded-lg bg-surface-2"
+                className="absolute inset-0 rounded-xl bg-surface-2 border border-border"
                 transition={{ duration: 0.2, ease: "easeOut" }}
               />
             )}
@@ -63,14 +63,14 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
               active
-                ? "bg-surface-2 text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                ? "bg-surface-2 text-foreground font-semibold border border-border"
+                : "text-muted-foreground hover:bg-surface-2/60 hover:text-foreground",
             )}
           >
             <item.icon className="size-4 shrink-0" />
-            {item.label}
+            <span>{item.label}</span>
           </Link>
         );
       })}
@@ -80,11 +80,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface lg:flex">
-      <div className="flex h-16 items-center px-5">
-        <Link href={"/dashboard" as Route}>
-          <Wordmark />
-        </Link>
+    <aside className="hidden w-64 shrink-0 border-r border-border bg-surface/50 backdrop-blur-md lg:flex lg:flex-col">
+      <div className="flex h-16 items-center px-6">
+        <Wordmark />
       </div>
       <NavLinks />
       <div className="p-3">
@@ -94,40 +92,31 @@ export function Sidebar() {
   );
 }
 
-export function MobileSidebar({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-overlay" onClick={onClose} />
-      <motion.aside
-        initial={{ x: -280 }}
-        animate={{ x: 0 }}
-        exit={{ x: -280 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="relative flex h-full w-64 flex-col border-r border-border bg-surface"
-      >
-        <div className="flex h-16 items-center justify-between px-5">
+    <div className="fixed inset-0 z-50 flex lg:hidden">
+      <div
+        className="fixed inset-0 bg-overlay backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside className="relative flex w-64 max-w-[80vw] flex-1 flex-col border-r border-border bg-surface shadow-2xl">
+        <div className="flex h-16 items-center justify-between px-6">
           <Wordmark />
           <button
-            type="button"
             onClick={onClose}
-            aria-label="Close menu"
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-surface-2"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-2"
           >
-            <X className="size-5" />
+            <span className="sr-only">Close sidebar</span>
+            ✕
           </button>
         </div>
         <NavLinks onNavigate={onClose} />
         <div className="p-3">
           <StorageMeter />
         </div>
-      </motion.aside>
+      </aside>
     </div>
   );
 }

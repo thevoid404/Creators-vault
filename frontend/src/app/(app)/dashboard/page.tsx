@@ -79,17 +79,18 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 pb-10">
       {/* 
-        Hero Banner: Modern frosted glass greeting inspired by the login design.
-        Deep aura background in dark mode, crisp clean gradient in light mode.
+        Hero Banner:
+        Crisp, elevated backdrop with distinct slate-indigo gradient, glowing borders,
+        and high-contrast text and buttons.
       */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface via-surface-2 to-surface p-6 shadow-xl sm:p-8 dark:border-white/10 dark:from-[#131520] dark:via-[#171a27] dark:to-[#0f1118]">
-        {/* Ambient background glows */}
-        <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-primary/10 blur-3xl dark:bg-primary/20" />
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface via-surface-2 to-surface p-6 shadow-md sm:p-8">
+        {/* Soft background aura glow */}
+        <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-primary/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 -left-16 size-72 rounded-full bg-emerald-500/10 blur-3xl" />
 
         <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md dark:border-white/10 dark:bg-white/5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold text-primary shadow-sm">
               <Sparkles className="size-3.5 text-primary" />
               <span>Workspace Overview</span>
             </div>
@@ -103,14 +104,14 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
-            <ButtonLink href="/assets/new" className="h-11 rounded-xl shadow-lg shadow-primary/20">
+            <ButtonLink href="/assets/new" className="h-11 rounded-xl shadow-md shadow-primary/25">
               <Plus className="mr-1.5 size-4" />
               New Asset
             </ButtonLink>
           </div>
         </div>
 
-        {/* Floating Natural Language Search Bar (matching the Login card search aesthetic) */}
+        {/* Search Bar: Clearly visible with contrasting surface and border */}
         <form onSubmit={runSearch} className="relative z-10 mt-6 max-w-2xl">
           <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-4 size-5 text-muted-foreground" />
@@ -119,11 +120,11 @@ export default function DashboardPage() {
               onChange={(e) => setTerm(e.target.value)}
               placeholder="Search by meaning or keyword — e.g. “dark dashboard mockup”..."
               aria-label="Search your assets"
-              className="h-13 w-full rounded-2xl border border-border bg-surface/90 pl-12 pr-28 text-sm text-foreground shadow-inner backdrop-blur-md placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5"
+              className="h-12 w-full rounded-2xl border border-border-strong bg-surface pl-12 pr-28 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <button
               type="submit"
-              className="absolute right-2.5 flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-hover"
+              className="absolute right-2 flex h-8.5 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary-hover"
             >
               Search
               <ArrowRight className="size-3.5" />
@@ -132,7 +133,7 @@ export default function DashboardPage() {
         </form>
       </div>
 
-      {/* Quick Stats Grid: Glass-card aesthetic */}
+      {/* Quick Stats Grid: Clean elevated cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Total Assets"
@@ -167,7 +168,7 @@ export default function DashboardPage() {
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-danger-soft bg-danger-soft/40 px-5 py-4 text-sm text-danger-soft-foreground backdrop-blur-md">
+        <div className="rounded-2xl border border-danger-soft bg-danger-soft/40 px-5 py-4 text-sm text-danger-soft-foreground">
           Couldn&apos;t load your dashboard.{" "}
           <button onClick={refetch} className="font-semibold underline hover:text-danger">
             Retry
@@ -182,7 +183,7 @@ export default function DashboardPage() {
           title="Recently Added"
           description="Latest creations & uploads"
           viewAllHref="/assets?sortBy=createdAt"
-          className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+          className="rounded-3xl border-border bg-surface shadow-sm"
         >
           {initialLoading ? (
             <SkeletonRows />
@@ -207,7 +208,7 @@ export default function DashboardPage() {
           title="Needs Attention"
           description="Recent items missing a project, tags or description"
           viewAllHref="/assets"
-          className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+          className="rounded-3xl border-border bg-surface shadow-sm"
         >
           {initialLoading ? (
             <SkeletonRows />
@@ -237,7 +238,7 @@ export default function DashboardPage() {
         title="Featured Projects"
         description="Active workspaces and collections"
         viewAllHref="/projects"
-        className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+        className="rounded-3xl border-border bg-surface shadow-sm"
       >
         {initialLoading ? (
           <ProjectGrid>
@@ -270,7 +271,7 @@ export default function DashboardPage() {
         title="Recently Used"
         description="Assets you touched most recently"
         viewAllHref="/assets?sortBy=updatedAt"
-        className="rounded-3xl border-border bg-surface/70 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141620]/80"
+        className="rounded-3xl border-border bg-surface shadow-sm"
       >
         {initialLoading ? (
           <SkeletonRows />
