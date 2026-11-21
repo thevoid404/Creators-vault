@@ -2,22 +2,22 @@
 
 /* ------------------------------------------------------------------ *
  * Creators' Vault design system
- * Style: Modern Frosted Glass / Clean Elevated Dark Palette
+ * Style: Sleek Deep-Navy Cyber Frost (Exact match to reference mockup)
  * ------------------------------------------------------------------ */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   /* surfaces - Light mode */
-  --background: #f8fafc;
+  --background: #f6f8fc;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
+  --surface-2: #f0f4f9;
   --surface-3: #e2e8f0;
   --overlay: rgba(15, 23, 42, 0.45);
 
   /* text */
   --foreground: #0f172a;
-  --muted-foreground: #475569;
+  --muted-foreground: #64748b;
   --subtle-foreground: #94a3b8;
 
   /* lines */
@@ -47,48 +47,50 @@
   --info-soft: #f0f9ff;
   --info-soft-foreground: #0369a1;
 
-  --radius: 0.85rem;
+  --radius: 1rem;
 }
 
 .dark {
   /* 
-   * Crisp Slate Dark Mode:
-   * Instead of pitch black, uses deep rich slate navy (#0d1117 / #131823 / #1a2233)
-   * Elevated contrast, visible component cards, and clear borders.
+   * Exact Match to Mockup:
+   * App Background: #0a0d14
+   * Cards / Sidebar Surfaces: #101522 with smooth inset shadows & glowing borders
+   * Border: rgba(255, 255, 255, 0.08)
+   * Primary brand: #6d64ff / #818cf8 (Vibrant Indigo-Violet)
    */
-  --background: #0d1117;
-  --surface: #141b27;
-  --surface-2: #1c2536;
-  --surface-3: #28354c;
-  --overlay: rgba(5, 8, 15, 0.75);
+  --background: #0a0d14;
+  --surface: #101522;
+  --surface-2: #161c2e;
+  --surface-3: #1f273d;
+  --overlay: rgba(5, 7, 12, 0.8);
 
-  --foreground: #f1f5f9;
-  --muted-foreground: #94a3b8;
-  --subtle-foreground: #64748b;
+  --foreground: #f8fafc;
+  --muted-foreground: #8e9bb3;
+  --subtle-foreground: #5e6b82;
 
-  --border: #222d3d;
-  --border-strong: #334155;
-  --ring: #818cf8;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --ring: #6d64ff;
 
-  --primary: #818cf8;
-  --primary-hover: #9da8ff;
-  --primary-foreground: #0b0f19;
-  --primary-soft: rgba(129, 140, 248, 0.16);
+  --primary: #6d64ff;
+  --primary-hover: #837bff;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgba(109, 100, 255, 0.16);
   --primary-soft-foreground: #c7d2fe;
 
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.15);
-  --success-soft-foreground: #a7f3d0;
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.15);
+  --success: #22c55e;
+  --success-soft: rgba(34, 197, 94, 0.15);
+  --success-soft-foreground: #86efac;
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
   --warning-soft-foreground: #fde68a;
-  --danger: #f87171;
-  --danger-hover: #ef4444;
-  --danger-soft: rgba(248, 113, 113, 0.15);
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-soft: rgba(239, 68, 68, 0.15);
   --danger-soft-foreground: #fca5a5;
-  --info: #38bdf8;
-  --info-soft: rgba(56, 189, 248, 0.15);
-  --info-soft-foreground: #bae6fd;
+  --info: #06b6d4;
+  --info-soft: rgba(6, 182, 212, 0.15);
+  --info-soft-foreground: #a5f3fc;
 }
 
 @theme inline {
